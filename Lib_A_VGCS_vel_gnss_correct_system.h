@@ -23,6 +23,7 @@
 
 /*==== |Begin| --> Секция - "Extern libraries" ===============================*/
 #include "Lib_A_UKFMO_ukf_matrix_operations.h"
+#include "Lib_A_UKFSIF_ukf_standart_init_fnc.h"
 /*==== |End  | <-- Секция - "Extern libraries" ===============================*/
 /*#### |End  | <-- Секция - "Include" ########################################*/
 
@@ -170,7 +171,7 @@ typedef struct
  */
 typedef struct
 {
-	ukfmo_matrix_data_s mat_s;
+	ukfmo_matrix_s mat_s;
 	__VGCS_FPT__ memForMatrix[VGCS_LEN_STATE][1u];
 } vgcs_matrix_6_1_s;
 
@@ -179,7 +180,7 @@ typedef struct
  */
 typedef struct
 {
-	ukfmo_matrix_data_s mat_s;
+	ukfmo_matrix_s mat_s;
 	__VGCS_FPT__ memForMatrix[VGCS_LEN_SIGMA_ROW][VGCS_LEN_SIGMA_COL];
 } vgcs_matrix_6_13_s;
 
@@ -244,7 +245,7 @@ typedef struct
 	/*------------------------------------------------------------------------*//**
 	 * @brief Матрицы шумов
 	 */
-	vgca_noise_matrix_s noise_s;
+	vgca_noise_matrix_s noiseMatrix_s;
 
 } vgcs_data_s;
 
@@ -253,7 +254,7 @@ typedef struct
  */
 typedef struct
 {
-
+	ukfsif_scaling_param_s scalParams_s;
 } vgcs_data_init_s;
 /*#### |End  | <-- Секция - "Определение типов" ##############################*/
 
@@ -266,10 +267,34 @@ typedef struct
 extern void __VGCS_FNC_ONCE_MEMORY_LOCATION
 VGCS_InitStruct(
 	vgcs_data_init_s *pUKF_s);
+
+extern void __VGCS_FNC_ONCE_MEMORY_LOCATION
+VGSS_Init_All(
+	vgcs_data_s 		*pData_s,
+	vgcs_data_init_s 	*pInit_s);
 /*#### |End  | <-- Секция - "Прототипы глобальных функций" ###################*/
 
 
 /*#### |Begin| --> Секция - "Определение макросов" ###########################*/
+#if defined (__UKFMO_CHEKING_ENABLE__)
+
+#define __VGCS_CheckMatrixStructValidation(x) \
+	__UKFMO_CheckMatrixStructValidationGeneric(x, (VGCS_LEN_SIGMA_COL), (VGCS_LEN_SIGMA_COL))
+#else
+
+/*-------------------------------------------------------------------------*//**
+ * @author    Mickle Isaev
+ * @date      22-авг-2019
+ *
+ * @brief    Макрос проверяет валидность структуры матрицы, если матрица
+ *           не валидна, то макрос зацикливает программу
+ *
+ * @param[in]	x: 	Указатель на структуру матрицы
+ *
+ * @return   None
+ */
+#define __VGCS_CheckMatrixStructValidation(x)
+#endif
 /*#### |End  | <-- Секция - "Определение макросов" ###########################*/
 
 
