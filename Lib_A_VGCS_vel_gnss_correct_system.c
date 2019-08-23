@@ -41,30 +41,64 @@ VGSS_Init_MatrixStructs(
 {
 	/* Инициализация матрицы шума Q */
 	UKFMO_MatrixInit(
-		&pData_s->noiseMatrix_s.Q_s.mat_s,
+		&pData_s->noiseMatrix_s.QMat_s.mat_s,
 		VGCS_LEN_MATRIX_ROW,
 		VGCS_LEN_MATRIX_COL,
-		pData_s->noiseMatrix_s.Q_s.memForMatrix[0u]);
+		pData_s->noiseMatrix_s.QMat_s.memForMatrix[0u]
+	);
 	__VGCS_CheckMatrixStructValidation(
-		&pData_s->noiseMatrix_s.Q_s.mat_s);
+		&pData_s->noiseMatrix_s.QMat_s.mat_s);
 
 	/* Инициализация матрицы шума R */
 	UKFMO_MatrixInit(
-		&pData_s->noiseMatrix_s.R_s.mat_s,
+		&pData_s->noiseMatrix_s.RMat_s.mat_s,
 		VGCS_LEN_MATRIX_ROW,
 		VGCS_LEN_MATRIX_COL,
-		pData_s->noiseMatrix_s.R_s.memForMatrix[0u]);
+		pData_s->noiseMatrix_s.RMat_s.memForMatrix[0u]
+	);
 	__VGCS_CheckMatrixStructValidation(
-		&pData_s->noiseMatrix_s.R_s.mat_s);
+		&pData_s->noiseMatrix_s.RMat_s.mat_s);
 
 	/* Инициализация матрицы пространства состояний */
 	UKFMO_MatrixInit(
-		&pData_s->state_s.mat_s,
-		VGCS_LEN_STATE,
-		1u,
-		pData_s->state_s.memForMatrix[0u]);
+		&pData_s->stateMat_s.mat_s, 			/* !< Указатель на структуру матрицы */
+		VGCS_LEN_STATE, 						/* !< Количество строк */
+		1u,										/* !< Количество столбцов */
+		pData_s->stateMat_s.memForMatrix[0u] 	/* !< Указатель на область памяти для хранения матрицы */
+	);
 	__VGCS_CheckMatrixStructValidation(
-		&pData_s->state_s.mat_s);
+		&pData_s->stateMat_s.mat_s);
+
+	/* Инициализация матрицы ковариаций */
+	UKFMO_MatrixInit(
+		&pData_s->covMat_s.mat_s,
+		VGCS_LEN_MATRIX_ROW,
+		VGCS_LEN_MATRIX_COL,
+		pData_s->covMat_s.memForMatrix[0u]
+	);
+	__VGCS_CheckMatrixStructValidation(
+		&pData_s->covMat_s.mat_s);
+
+	/* Инициализация матрицы сигма-точек */
+	UKFMO_MatrixInit(
+		&pData_s->chiSigmaMat_s.mat_s,
+		VGCS_LEN_SIGMA_ROW,
+		VGCS_LEN_SIGMA_COL,
+		pData_s->chiSigmaMat_s.memForMatrix[0u]
+	);
+	__VGCS_CheckMatrixStructValidation(
+		&pData_s->chiSigmaMat_s.mat_s);
+
+	/* Инициализация матрицы сигма-точек (после функции преобразования) */
+	UKFMO_MatrixInit(
+		&pData_s->chiSigmaPostMat_s.mat_s,
+		VGCS_LEN_SIGMA_ROW,
+		VGCS_LEN_SIGMA_COL,
+		pData_s->chiSigmaPostMat_s.memForMatrix[0u]
+	);
+	__VGCS_CheckMatrixStructValidation(
+		&pData_s->chiSigmaPostMat_s.mat_s);
+
 }
 
 void __VGCS_FNC_ONCE_MEMORY_LOCATION
