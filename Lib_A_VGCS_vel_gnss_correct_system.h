@@ -276,10 +276,22 @@ VGSS_Init_All(
 
 
 /*#### |Begin| --> Секция - "Определение макросов" ###########################*/
+
+
 #if defined (__UKFMO_CHEKING_ENABLE__)
 
-#define __VGCS_CheckMatrixStructValidation(x) \
-	__UKFMO_CheckMatrixStructValidationGeneric(x, (VGCS_LEN_SIGMA_COL), (VGCS_LEN_SIGMA_COL))
+__VGCS_ALWAYS_INLINE ukfmo_matrix_s*
+__VGCS_CheckMatrixStructValidation(
+	ukfmo_matrix_s *pData)
+{
+	/* Вызов макроса для проверки параметров структуры */
+	__UKFMO_CheckMatrixStructValidationGeneric(
+		pData,
+		(VGCS_LEN_SIGMA_COL),
+		(VGCS_LEN_SIGMA_COL));
+
+	return (pData);
+}
 #else
 
 /*-------------------------------------------------------------------------*//**
@@ -295,6 +307,8 @@ VGSS_Init_All(
  */
 #define __VGCS_CheckMatrixStructValidation(x)
 #endif
+
+
 /*#### |End  | <-- Секция - "Определение макросов" ###########################*/
 
 
