@@ -227,6 +227,14 @@ typedef struct
 	vgcs_matrix_6x6_s RMat_s;
 } vgca_noise_matrix_s;
 
+typedef struct
+{
+	/*------------------------------------------------------------------------*//**
+	 * @brief Корень квадратный из суммы "Lаmbda" и "VGCS_LEN_STATE"
+	 */
+	__VGCS_FPT__ sqrtLamLen;
+} vgcs_scalar_params_s;
+
 /*-------------------------------------------------------------------------*//**
  * @brief Структура для хранения всех данных, необходимых для работы UKF
  */
@@ -240,7 +248,7 @@ typedef struct
 	/*------------------------------------------------------------------------*//**
 	 * @brief Вектор пространства состояний
 	 */
-	vgcs_matrix_6_1_s 	stateMat_s;
+	vgcs_matrix_6x6_s 	stateMat_s;
 
 	/*------------------------------------------------------------------------*//**
 	 * @brief Матрицы шумов
@@ -248,9 +256,14 @@ typedef struct
 	vgca_noise_matrix_s noiseMatrix_s;
 
 	/*------------------------------------------------------------------------*//**
-	 * @brief Матрицы ковариаций
+	 * @brief Матрицы ковариаций ("P")
 	 */
 	vgcs_matrix_6x6_s 	covMat_s;
+
+	/*------------------------------------------------------------------------*//**
+	 * @brief Корень квадратный от матрицы ковариаций ("sqrt P")
+	 */
+	vgcs_matrix_6x6_s 	sqrtCovMat_s;
 
 	/*------------------------------------------------------------------------*//**
 	 * @brief Матрица распределения сигма-точек
@@ -262,6 +275,7 @@ typedef struct
 	 */
 	vgcs_matrix_6_13_s 	chiSigmaPostMat_s;
 
+	vgcs_scalar_params_s scalar_s;
 } vgcs_data_s;
 
 /*-------------------------------------------------------------------------*//**
@@ -271,6 +285,82 @@ typedef struct
 {
 	ukfsif_scaling_param_s scalParams_s;
 } vgcs_data_init_s;
+
+#define __VGCS_GET_ADDR_MATRIX_STRUCT_R_k(BASEADDR)	\
+	(&BASEADDR->noiseMatrix_s.RMat_s.mat_s)
+#define __VGCS_GET_ADDR_MATRIX_MEMORY_R_k(BASEADDR)	\
+	(BASEADDR->noiseMatrix_s.RMat_s.memForMatrix[0u])
+
+#define __VGCS_GET_ADDR_MATRIX_STRUCT_Q_k(BASEADDR)	\
+	(&BASEADDR->noiseMatrix_s.QMat_s.mat_s)
+#define __VGCS_GET_ADDR_MATRIX_MEMORY_Q_k(BASEADDR)	\
+	(BASEADDR->noiseMatrix_s.QMat_s.memForMatrix[0u])
+
+/*-------------------------------------------------------------------------*//**
+ * @brief    Calculate error covariance matrix square root 
+ */
+#define VGCS_GET_ADDR_MATRIX_STRUCT_P_k(BASEADDR)
+
+
+#define VGCS_GET_ADDR_MATRIX_MEMORY_P_k(BASEADDR)
+
+/*-------------------------------------------------------------------------*//**
+ * @brief   Calculate error covariance matrix square root  
+ */
+#define VGCS_GET_ADDR_MATRIX_STRUCT_P_k_k1_SQRT(BASEADDR)
+
+#define VGCS_GET_ADDR_MATRIX_MEMORY_P_k_k1_SQRT(BASEADDR)
+
+/*-------------------------------------------------------------------------*//**
+ * @brief    Calculate the sigma-points 
+ */
+#define VGCS_GET_ADDR_MATRIX_chi_k1(BASEADDR)
+
+/*-------------------------------------------------------------------------*//**
+ * @brief    Propagate each sigma-point through prediction 
+ */
+#define VGCS_GET_ADDR_MARTIX_chi_k_k1(BASEADDR)
+
+/*-------------------------------------------------------------------------*//**
+ * @brief    Calculate mean of predicted state
+ */
+#define VGCS_GET_ADDR_MARTIX_x_k_k1(BASEADDR)
+
+/*-------------------------------------------------------------------------*//**
+ * @brief    Calculate covariance of predicted state 
+ */
+#define VGCS_GET_ADDR_MARTIX_P_k_k1(BASEADDR)
+
+/*-------------------------------------------------------------------------*//**
+ * @brief    Propagate each sigma-point through observation 
+ */
+#define VGCS_GET_ADDR_MARTIX_psi_k_k1(BASEADDR)
+
+/*-------------------------------------------------------------------------*//**
+ * @brief    Calculate mean of predicted output 
+ */
+#define VGCS_GET_ADDR_MARTIX_y_k_k1(BASEADDR)
+
+/*-------------------------------------------------------------------------*//**
+ * @brief    Calculate covariance of predicted output 
+ */
+#define VGCS_GET_ADDR_MARTIX_Pyy(BASEADDR)
+
+/*-------------------------------------------------------------------------*//**
+ * @brief    Calculate cross-covariance of state and output  
+ */
+#define VGCS_GET_ADDR_MARTIX_Pxy(BASEADDR)
+
+/*-------------------------------------------------------------------------*//**
+ * @brief    Calculate Kalman gain 
+ */
+#define VGCS_GET_ADDR_MARTIX_K_k(BASEADDR)
+
+/*-------------------------------------------------------------------------*//**
+ * @brief    Update state estimate 
+ */
+#define VGCS_GET_ADDR_MARTIX_x_k(xBASEADDR)
+
 /*#### |End  | <-- Секция - "Определение типов" ##############################*/
 
 

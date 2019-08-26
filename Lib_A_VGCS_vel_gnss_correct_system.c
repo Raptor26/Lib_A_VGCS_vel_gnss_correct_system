@@ -41,35 +41,35 @@ VGSS_Init_MatrixStructs(
 {
 	/* Инициализация матрицы шума Q */
 	UKFMO_MatrixInit(
-		&pData_s->noiseMatrix_s.QMat_s.mat_s,
+		__VGCS_GET_ADDR_MATRIX_STRUCT_Q_k(pData_s),
 		VGCS_LEN_MATRIX_ROW,
 		VGCS_LEN_MATRIX_COL,
-		pData_s->noiseMatrix_s.QMat_s.memForMatrix[0u]
+		__VGCS_GET_ADDR_MATRIX_MEMORY_Q_k(pData_s)
 	);
 	__VGCS_CheckMatrixStructValidation(
-		&pData_s->noiseMatrix_s.QMat_s.mat_s);
+		__VGCS_GET_ADDR_MATRIX_STRUCT_Q_k(pData_s));
 
 	/* Инициализация матрицы шума R */
 	UKFMO_MatrixInit(
-		&pData_s->noiseMatrix_s.RMat_s.mat_s,
+		__VGCS_GET_ADDR_MATRIX_STRUCT_R_k(pData_s),
 		VGCS_LEN_MATRIX_ROW,
 		VGCS_LEN_MATRIX_COL,
-		pData_s->noiseMatrix_s.RMat_s.memForMatrix[0u]
+		__VGCS_GET_ADDR_MATRIX_MEMORY_R_k(pData_s)
 	);
 	__VGCS_CheckMatrixStructValidation(
-		&pData_s->noiseMatrix_s.RMat_s.mat_s);
+		__VGCS_GET_ADDR_MATRIX_STRUCT_R_k(pData_s));
 
 	/* Инициализация матрицы пространства состояний */
 	UKFMO_MatrixInit(
 		&pData_s->stateMat_s.mat_s, 			/* !< Указатель на структуру матрицы */
-		VGCS_LEN_STATE, 						/* !< Количество строк */
-		1u,										/* !< Количество столбцов */
+		VGCS_LEN_MATRIX_ROW, 					/* !< Количество строк */
+		VGCS_LEN_MATRIX_COL,					/* !< Количество столбцов */
 		pData_s->stateMat_s.memForMatrix[0u] 	/* !< Указатель на область памяти для хранения матрицы */
 	);
 	__VGCS_CheckMatrixStructValidation(
 		&pData_s->stateMat_s.mat_s);
 
-	/* Инициализация матрицы ковариаций */
+	/* Инициализация матрицы ковариации */
 	UKFMO_MatrixInit(
 		&pData_s->covMat_s.mat_s,
 		VGCS_LEN_MATRIX_ROW,
@@ -99,6 +99,16 @@ VGSS_Init_MatrixStructs(
 	__VGCS_CheckMatrixStructValidation(
 		&pData_s->chiSigmaPostMat_s.mat_s);
 
+	/* Инициализация матрицы квадратного корня от матрицы ковариации "P" */
+	UKFMO_MatrixInit(
+		&pData_s->sqrtCovMat_s.mat_s,
+		VGCS_LEN_MATRIX_ROW,
+		VGCS_LEN_MATRIX_COL,
+		pData_s->sqrtCovMat_s.memForMatrix[0u]
+	);
+	__VGCS_CheckMatrixStructValidation(
+		&pData_s->sqrtCovMat_s.mat_s);
+
 }
 
 void __VGCS_FNC_ONCE_MEMORY_LOCATION
@@ -117,6 +127,37 @@ VGSS_Init_All(
 
 
 /*#### |Begin| --> Секция - "Описание локальных функций" #####################*/
+
+void
+VGCS_Step1_GeterateTheSigmaPoints(
+	vgcs_data_s *pData_s)
+{
+	/* Calculate error covariance matrix square root */
+
+	/* Копирование матрицы P в матрицу SQRT_P */
+	memcpy(
+		(void*) &pData_s->sqrtCovMat_s	.memForMatrix[0u][0u],
+		(void*) &pData_s->covMat_s		.memForMatrix[0u][0u],
+		VGCS_LEN_MATRIX_ROW * VGCS_LEN_MATRIX_COL);
+	ukfmo_fnc_status_e matOperationStatus_e;
+
+	/* Проверка матрицы */
+	__VGCS_CheckMatrixStructValidation(
+		&pData_s->sqrtCovMat_s.mat_s);
+
+	/* Нижнее разложение Холецкого */
+	matOperationStatus_e =
+		UKFMO_GetCholeskyLow(
+			&pData_s->sqrtCovMat_s.mat_s);
+
+	/* Calculate the sigma-points */
+	UKFSIF_CalculateTheSigmaPoints_2L1(
+		&pData_s->stateMat_s.memForMatrix[0u][0u],
+		&pData_s->chiSigmaMat_s.memForMatrix[0u][0u],
+		&pData_s->sqrtCovMat_s.memForMatrix[0u][0u],
+		pData_s->scalar_s.sqrtLamLen,
+		VGCS_LEN_SIGMA_ROW);
+}
 /*#### |End  | <-- Секция - "Описание локальных функций" #####################*/
 
 
