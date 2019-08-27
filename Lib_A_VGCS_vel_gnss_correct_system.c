@@ -33,6 +33,8 @@ VGCS_InitStruct(
 	pUKF_s->scalParams_s.alpha 	= (__VGCS_FPT__) 1.0;
 	pUKF_s->scalParams_s.beta 	= (__VGCS_FPT__) 2.0;
 	pUKF_s->scalParams_s.kappa 	= (__VGCS_FPT__) 0.0;
+
+	/* @TODO Сброс периода интегрирования */
 }
 
 void __VGCS_FNC_ONCE_MEMORY_LOCATION
@@ -118,6 +120,10 @@ VGSS_Init_All(
 {
 	/* Инициализация всех структур матриц */
 	VGSS_Init_MatrixStructs(pData_s);
+
+	/* @TODO вычисление корня квадратного из (lambda + len) и запись в поле структуры */
+
+	/* @TODO Установка периода интегрирования */
 }
 /*#### |End  | <-- Секция - "Описание глобальных функций" ####################*/
 
@@ -128,11 +134,11 @@ VGSS_Init_All(
 
 /*#### |Begin| --> Секция - "Описание локальных функций" #####################*/
 
-void
+vgcs_fnc_status_e
 VGCS_Step1_GeterateTheSigmaPoints(
 	vgcs_data_s *pData_s)
 {
-	/* Calculate error covariance matrix square root */
+	/* #### Calculate error covariance matrix square root #### */
 
 	/* Копирование матрицы P в матрицу SQRT_P */
 	memcpy(
@@ -146,17 +152,95 @@ VGCS_Step1_GeterateTheSigmaPoints(
 		&pData_s->sqrtCovMat_s.mat_s);
 
 	/* Нижнее разложение Холецкого */
+	#if defined (__UKFMO_CHEKING_ENABLE__)
 	matOperationStatus_e =
+	#endif
 		UKFMO_GetCholeskyLow(
 			&pData_s->sqrtCovMat_s.mat_s);
 
 	/* Calculate the sigma-points */
 	UKFSIF_CalculateTheSigmaPoints_2L1(
-		&pData_s->stateMat_s.memForMatrix[0u][0u],
-		&pData_s->chiSigmaMat_s.memForMatrix[0u][0u],
-		&pData_s->sqrtCovMat_s.memForMatrix[0u][0u],
-		pData_s->scalar_s.sqrtLamLen,
+		&pData_s->stateMat_s	.memForMatrix[0u][0u],
+		&pData_s->chiSigmaMat_s	.memForMatrix[0u][0u],
+		&pData_s->sqrtCovMat_s	.memForMatrix[0u][0u],
+		pData_s->scalar_s		.sqrtLamLen,
 		VGCS_LEN_SIGMA_ROW);
+
+	#if defined (__UKFMO_CHEKING_ENABLE__)
+	return (matOperationStatus_e);
+	#else
+	return (UKFMO_OK);
+	#endif
+}
+
+vgcs_fnc_status_e
+VGCS_Step2_PredictionTransformation(
+	vgcs_data_s *pData_s)
+{
+	VGCS_Step2_ProragateEachSigmaPointsThroughPrediction(
+		pData_s);
+
+	VGCS_Step2_CalculateMeanOfPredictedState(
+		pData_s);
+
+	VGCS_Step2_CalculateCovarianceOfPredictedState(
+		pData_s);
+}
+
+vgcs_fnc_status_e
+VGCS_Step2_ProragateEachSigmaPointsThroughPrediction(
+	vgcs_data_s *pData_s)
+{
+	size_t i;
+	__VGCS_FPT__ deltaVel_a[3u];
+	for (i = 0u;
+		 i < (size_t) VGCS_LEN_SIGMA_COL;
+		 i++)
+	{
+		/* Интегрирование вектора ускорений для получения вектора скорости (методом нулевого порядка )
+		 * с учетом смещения нуля акселерометра */
+		deltaVel_a[VGCS_VEL_X] =
+			(pData_s->meas_s.accWorldFrame_s.new_a[VGCS_VEL_X] - pData_s->chiSigmaMat_s.memForMatrix[VGCS_ACC_ERR_X][i]) * pData_s->meas_s.dt;
+		deltaVel_a[VGCS_VEL_Y] =
+			(pData_s->meas_s.accWorldFrame_s.new_a[VGCS_VEL_Y] - pData_s->chiSigmaMat_s.memForMatrix[VGCS_ACC_ERR_Y][i]) * pData_s->meas_s.dt;
+		deltaVel_a[VGCS_VEL_Z] =
+			(pData_s->meas_s.accWorldFrame_s.new_a[VGCS_VEL_Z] - pData_s->chiSigmaMat_s.memForMatrix[VGCS_ACC_ERR_Z][i]) * pData_s->meas_s.dt;
+
+		/* Сложение приращения скорости с предыдущим значением скорости и
+		 * запись в матрицу (chi k|k-1) */
+		pData_s->chiSigmaPostMat_s.memForMatrix[VGCS_VEL_X][i] =
+			pData_s->chiSigmaMat_s.memForMatrix[VGCS_VEL_X][i] + deltaVel_a[VGCS_VEL_X];
+
+		pData_s->chiSigmaPostMat_s.memForMatrix[VGCS_VEL_Y][i] =
+			pData_s->chiSigmaMat_s.memForMatrix[VGCS_VEL_Y][i] + deltaVel_a[VGCS_VEL_Y];
+
+		pData_s->chiSigmaPostMat_s.memForMatrix[VGCS_VEL_Z][i] =
+			pData_s->chiSigmaMat_s.memForMatrix[VGCS_VEL_Z][i] + deltaVel_a[VGCS_VEL_Z];
+
+		/* Копирование смещений нуля в матрицу (chi k|k-1) */
+		pData_s->chiSigmaPostMat_s.memForMatrix[VGCS_ACC_ERR_X][i] =
+			pData_s->chiSigmaMat_s.memForMatrix[VGCS_ACC_ERR_X][i];
+
+		pData_s->chiSigmaPostMat_s.memForMatrix[VGCS_ACC_ERR_Y][i] =
+			pData_s->chiSigmaMat_s.memForMatrix[VGCS_ACC_ERR_Y][i];
+
+		pData_s->chiSigmaPostMat_s.memForMatrix[VGCS_ACC_ERR_Z][i] =
+			pData_s->chiSigmaMat_s.memForMatrix[VGCS_ACC_ERR_Z][i];
+	}
+}
+
+vgcs_fnc_status_e
+VGCS_Step2_CalculateMeanOfPredictedState(
+	vgcs_data_s *pData_s)
+{
+
+}
+
+vgcs_fnc_status_e
+VGCS_Step2_CalculateCovarianceOfPredictedState(
+	vgcs_data_s *pData_s)
+{
+
 }
 /*#### |End  | <-- Секция - "Описание локальных функций" #####################*/
 

@@ -123,6 +123,8 @@ typedef enum
 	VGCS_LEN_STATE,
 } vgcs_state_param_position_e;
 
+#define  vgcs_fnc_status_e 		ukfmo_fnc_status_e
+
 /*-------------------------------------------------------------------------*//**
  * @brief    Количество строк матрицы сигма-точек
  */
@@ -209,6 +211,7 @@ typedef struct
 {
 	vgcs_acc_world_frame_s 		accWorldFrame_s;
 	vgcs_velgnss_world_frame_s 	velByGNSSWorldFrame_s;
+	__VGCS_FPT__ 				dt;
 } vgcs_meas_data_s;
 
 /*-------------------------------------------------------------------------*//**
@@ -266,12 +269,12 @@ typedef struct
 	vgcs_matrix_6x6_s 	sqrtCovMat_s;
 
 	/*------------------------------------------------------------------------*//**
-	 * @brief Матрица распределения сигма-точек
+	 * @brief Матрица распределения сигма-точек (chi k-1)
 	 */
 	vgcs_matrix_6_13_s 	chiSigmaMat_s;
 
 	/*------------------------------------------------------------------------*//**
-	 * @brief Матрица сигма-точек (после функции преобразования)
+	 * @brief Матрица сигма-точек (после функции преобразования) (chi k|k-1)
 	 */
 	vgcs_matrix_6_13_s 	chiSigmaPostMat_s;
 
