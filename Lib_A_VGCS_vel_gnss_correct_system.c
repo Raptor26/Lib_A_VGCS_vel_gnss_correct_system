@@ -130,15 +130,15 @@ VGSS_Init_MatrixStructs(
 
 	/* Инициализация матрицы квадратного корня от матрицы ковариации "P" */
 	UKFMO_MatrixInit(
-		&pData_s->sqrtCovMat_s.mat_s,
+		&pData_s->sqrtP_apriori_s.mat_s,
 		VGCS_LEN_MATRIX_ROW,
 		VGCS_LEN_MATRIX_COL,
-		pData_s->sqrtCovMat_s.memForMatrix[0u]
+		pData_s->sqrtP_apriori_s.memForMatrix[0u]
 	);
 	__VGCS_CheckMatrixStructValidation(
-		&pData_s->sqrtCovMat_s.mat_s);
+		&pData_s->sqrtP_apriori_s.mat_s);
 	initMatrixPointers_s.pMatrix_s_a[UKFSIF_INIT_P_sqrt] =
-		&pData_s->sqrtCovMat_s.mat_s;
+		&pData_s->sqrtP_apriori_s.mat_s;
 
 	UKFMO_MatrixInit(
 		&pData_s->muMean_s.mat_s,
@@ -343,10 +343,9 @@ VGCS_Step1_GeterateTheSigmaPoints(
 	/* #### Calculate error covariance matrix square root #### */
 
 	/* Копирование матрицы P в матрицу SQRT_P */
-	memcpy(
-		(void*) &pData_s->sqrtCovMat_s	.memForMatrix[0u][0u],
-		(void*) &pData_s->covMat_s		.memForMatrix[0u][0u],
-		VGCS_LEN_MATRIX_ROW * VGCS_LEN_MATRIX_COL);
+	UKFMO_CopyMatrix(
+		&pData_s->sqrtP_apriori_s.mat_s,
+		&pData_s->P_predict_s.mat_s);
 
 	#if defined (__UKFMO_CHEKING_ENABLE__)
 	ukfmo_fnc_status_e matOperationStatus_e;
@@ -354,20 +353,20 @@ VGCS_Step1_GeterateTheSigmaPoints(
 
 	/* Проверка матрицы */
 	__VGCS_CheckMatrixStructValidation(
-		&pData_s->sqrtCovMat_s.mat_s);
+		&pData_s->sqrtP_apriori_s.mat_s);
 
 	/* Нижнее разложение Холецкого */
 	#if defined (__UKFMO_CHEKING_ENABLE__)
 	matOperationStatus_e =
 	#endif
 		UKFMO_GetCholeskyLow(
-			&pData_s->sqrtCovMat_s.mat_s);
+			&pData_s->sqrtP_apriori_s.mat_s);
 
 	/* Calculate the sigma-points */
 	UKFSIF_CalculateTheSigmaPoints_2L1(
 		&pData_s->stateMat_s	.memForMatrix[0u][0u],
 		&pData_s->chiSigmaMat_s	.memForMatrix[0u][0u],
-		&pData_s->sqrtCovMat_s	.memForMatrix[0u][0u],
+		&pData_s->sqrtP_apriori_s	.memForMatrix[0u][0u],
 		pData_s->scalar_s		.sqrtLamLen,
 		VGCS_LEN_SIGMA_ROW);
 
