@@ -21,6 +21,9 @@
 
 
 /*#### |Begin| --> Секция - "Прототипы локальных функций" ####################*/
+static vgcs_fnc_status_e
+VGCS_Step2_ProragateEachSigmaPointsThroughPrediction(
+	vgcs_data_s *pData_s);
 /*#### |End  | <-- Секция - "Прототипы локальных функций" ####################*/
 
 
@@ -145,7 +148,10 @@ VGCS_Step1_GeterateTheSigmaPoints(
 		(void*) &pData_s->sqrtCovMat_s	.memForMatrix[0u][0u],
 		(void*) &pData_s->covMat_s		.memForMatrix[0u][0u],
 		VGCS_LEN_MATRIX_ROW * VGCS_LEN_MATRIX_COL);
+
+	#if defined (__UKFMO_CHEKING_ENABLE__)
 	ukfmo_fnc_status_e matOperationStatus_e;
+	#endif
 
 	/* Проверка матрицы */
 	__VGCS_CheckMatrixStructValidation(
@@ -180,21 +186,22 @@ VGCS_Step2_PredictionTransformation(
 	VGCS_Step2_ProragateEachSigmaPointsThroughPrediction(
 		pData_s);
 
-	VGCS_Step2_CalculateMeanOfPredictedState(
-		pData_s);
-
-	VGCS_Step2_CalculateCovarianceOfPredictedState(
-		pData_s);
+//	VGCS_Step2_CalculateMeanOfPredictedState(
+//		pData_s);
+//
+//	VGCS_Step2_CalculateCovarianceOfPredictedState(
+//		pData_s);
 }
 
-vgcs_fnc_status_e
+static vgcs_fnc_status_e
 VGCS_Step2_ProragateEachSigmaPointsThroughPrediction(
 	vgcs_data_s *pData_s)
 {
 	size_t i;
 	__VGCS_FPT__ deltaVel_a[3u];
+
 	for (i = 0u;
-		 i < (size_t) VGCS_LEN_SIGMA_COL;
+		 i < ((size_t) VGCS_LEN_SIGMA_COL);
 		 i++)
 	{
 		/* Интегрирование вектора ускорений для получения вектора скорости (методом нулевого порядка )
@@ -227,21 +234,23 @@ VGCS_Step2_ProragateEachSigmaPointsThroughPrediction(
 		pData_s->chiSigmaPostMat_s.memForMatrix[VGCS_ACC_ERR_Z][i] =
 			pData_s->chiSigmaMat_s.memForMatrix[VGCS_ACC_ERR_Z][i];
 	}
+
+	return (UKFMO_OK);
 }
 
-vgcs_fnc_status_e
-VGCS_Step2_CalculateMeanOfPredictedState(
-	vgcs_data_s *pData_s)
-{
-
-}
-
-vgcs_fnc_status_e
-VGCS_Step2_CalculateCovarianceOfPredictedState(
-	vgcs_data_s *pData_s)
-{
-
-}
+//vgcs_fnc_status_e
+//VGCS_Step2_CalculateMeanOfPredictedState(
+//	vgcs_data_s *pData_s)
+//{
+//
+//}
+//
+//vgcs_fnc_status_e
+//VGCS_Step2_CalculateCovarianceOfPredictedState(
+//	vgcs_data_s *pData_s)
+//{
+//
+//}
 /*#### |End  | <-- Секция - "Описание локальных функций" #####################*/
 
 
