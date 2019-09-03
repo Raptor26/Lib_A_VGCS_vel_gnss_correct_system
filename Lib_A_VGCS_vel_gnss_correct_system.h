@@ -40,8 +40,10 @@
 #endif
 
 #if     __VGCS_FPT_SIZE__ == 4
+	#define __VGCS_sqrt(x) 	sqrtf(x)
 
 #elif   __VGCS_FPT_SIZE__ == 8
+	#define __VGCS_sqrt(x) 	sqrt(x)
 
 #else
 	#error "Your compiler uses a non-standard floating point size"
@@ -198,7 +200,9 @@ typedef struct
  */
 typedef struct
 {
-	__VGCS_FPT__ new_a[3u];
+	__VGCS_FPT__ 	new_a[3u];
+
+	size_t 			isNewData_flag;
 } vgcs_acc_world_frame_s;
 
 /*-------------------------------------------------------------------------*//**
@@ -207,7 +211,9 @@ typedef struct
  */
 typedef struct
 {
-	__VGCS_FPT__ new_a[3u];
+	__VGCS_FPT__ 	new_a[3u];
+
+	size_t 			isNewData_flag;
 } vgcs_velgnss_world_frame_s;
 
 /*-------------------------------------------------------------------------*//**
@@ -317,9 +323,15 @@ typedef struct
 
 	vgcs_matrix_6_1_s psi_priory_MINUS_y_priory;
 
-	vgcs_matrix_6_1_s y_predict_s;
+	vgcs_matrix_6_1_s y_posteriori_s;
 
 	vgcs_matrix_6_1_s innovation_s;
+
+	/*------------------------------------------------------------------------*//**
+	 * @brief Структура для инициализации указателей на матрицы (дли
+	 *        использования библиотеки "UKFSIF")
+	 */
+	ukfsif_all_data_s 		ukfsifMatrixPointers_s;
 } vgcs_data_s;
 
 /*-------------------------------------------------------------------------*//**
@@ -327,7 +339,15 @@ typedef struct
  */
 typedef struct
 {
-	ukfsif_scaling_param_s scalParams_s;
+	/*------------------------------------------------------------------------*//**
+	 * @brief Скалярные параметры UKF
+	 */
+	ukfsif_scaling_param_s 	scalParams_s;
+
+	__VGCS_FPT__ dt;
+
+	__VGCS_FPT__ Q_mat_a[VGCS_LEN_STATE];
+	__VGCS_FPT__ R_mat_a[VGCS_LEN_STATE];
 } vgcs_data_init_s;
 
 #define __VGCS_GET_ADDR_MATRIX_STRUCT_R_k(BASEADDR)	\
@@ -341,7 +361,7 @@ typedef struct
 	(BASEADDR->noiseMatrix_s.QMat_s.memForMatrix[0u])
 
 /*-------------------------------------------------------------------------*//**
- * @brief    Calculate error covariance matrix square root 
+ * @brief    Calculate error covariance matrix square root
  */
 #define VGCS_GET_ADDR_MATRIX_STRUCT_P_k(BASEADDR)
 
@@ -349,19 +369,19 @@ typedef struct
 #define VGCS_GET_ADDR_MATRIX_MEMORY_P_k(BASEADDR)
 
 /*-------------------------------------------------------------------------*//**
- * @brief   Calculate error covariance matrix square root  
+ * @brief   Calculate error covariance matrix square root
  */
 #define VGCS_GET_ADDR_MATRIX_STRUCT_P_k_k1_SQRT(BASEADDR)
 
 #define VGCS_GET_ADDR_MATRIX_MEMORY_P_k_k1_SQRT(BASEADDR)
 
 /*-------------------------------------------------------------------------*//**
- * @brief    Calculate the sigma-points 
+ * @brief    Calculate the sigma-points
  */
 #define VGCS_GET_ADDR_MATRIX_chi_k1(BASEADDR)
 
 /*-------------------------------------------------------------------------*//**
- * @brief    Propagate each sigma-point through prediction 
+ * @brief    Propagate each sigma-point through prediction
  */
 #define VGCS_GET_ADDR_MARTIX_chi_k_k1(BASEADDR)
 
@@ -371,37 +391,37 @@ typedef struct
 #define VGCS_GET_ADDR_MARTIX_x_k_k1(BASEADDR)
 
 /*-------------------------------------------------------------------------*//**
- * @brief    Calculate covariance of predicted state 
+ * @brief    Calculate covariance of predicted state
  */
 #define VGCS_GET_ADDR_MARTIX_P_k_k1(BASEADDR)
 
 /*-------------------------------------------------------------------------*//**
- * @brief    Propagate each sigma-point through observation 
+ * @brief    Propagate each sigma-point through observation
  */
 #define VGCS_GET_ADDR_MARTIX_psi_k_k1(BASEADDR)
 
 /*-------------------------------------------------------------------------*//**
- * @brief    Calculate mean of predicted output 
+ * @brief    Calculate mean of predicted output
  */
 #define VGCS_GET_ADDR_MARTIX_y_k_k1(BASEADDR)
 
 /*-------------------------------------------------------------------------*//**
- * @brief    Calculate covariance of predicted output 
+ * @brief    Calculate covariance of predicted output
  */
 #define VGCS_GET_ADDR_MARTIX_Pyy(BASEADDR)
 
 /*-------------------------------------------------------------------------*//**
- * @brief    Calculate cross-covariance of state and output  
+ * @brief    Calculate cross-covariance of state and output
  */
 #define VGCS_GET_ADDR_MARTIX_Pxy(BASEADDR)
 
 /*-------------------------------------------------------------------------*//**
- * @brief    Calculate Kalman gain 
+ * @brief    Calculate Kalman gain
  */
 #define VGCS_GET_ADDR_MARTIX_K_k(BASEADDR)
 
 /*-------------------------------------------------------------------------*//**
- * @brief    Update state estimate 
+ * @brief    Update state estimate
  */
 #define VGCS_GET_ADDR_MARTIX_x_k(xBASEADDR)
 
@@ -413,6 +433,16 @@ typedef struct
 
 
 /*#### |Begin| --> Секция - "Прототипы глобальных функций" ###################*/
+#define __VGCS_UpdateDt(__pData_s__, __dt__) ((__pData_s__)->meas_s.dt = (__dt__))
+
+#define __VGCS_SetFlagAccDataUpdate() 		(pData_s->meas_s.accWorldFrame_s.isNewData_flag 	= 1u)
+#define __VGCS_ReSetFlagAccDataUpdate() 	(pData_s->meas_s.accWorldFrame_s.isNewData_flag 	= 0u)
+#define __VGCS_IsFlagAccDataUpdateSet() 	(pData_s->meas_s.accWorldFrame_s.isNewData_flag 	== 1u)
+
+#define __VGCS_SetFlagGNSSDataUpdate() 		(pData_s->meas_s.velByGNSSWorldFrame_s.isNewData_flag 	= 1u)
+#define __VGCS_ReSetFlagGNSSDataUpdate() 	(pData_s->meas_s.velByGNSSWorldFrame_s.isNewData_flag 	= 0u)
+#define __VGCS_IsFlagGNSSDataUpdateSet() 	(pData_s->meas_s.velByGNSSWorldFrame_s.isNewData_flag 	== 1u)
+
 extern void __VGCS_FNC_ONCE_MEMORY_LOCATION
 VGCS_InitStruct(
 	vgcs_data_init_s *pUKF_s);
@@ -442,9 +472,21 @@ VGCS_UpdateSpeedByGNSS(
 	vgcs_data_s 	*pData_s,
 	__VGCS_FPT__ 	*pVel)
 {
-	pData_s->meas_s.velByGNSSWorldFrame_s.new_a[0u] = *pVel++;
-	pData_s->meas_s.velByGNSSWorldFrame_s.new_a[1u] = *pVel++;
-	pData_s->meas_s.velByGNSSWorldFrame_s.new_a[2u] = *pVel;
+//	pData_s->meas_s.velByGNSSWorldFrame_s.new_a[0u] = *pVel++;
+//	pData_s->meas_s.velByGNSSWorldFrame_s.new_a[1u] = *pVel++;
+//	pData_s->meas_s.velByGNSSWorldFrame_s.new_a[2u] = *pVel;
+
+	/* Заполнение вектора измерений */
+	/* @todo после отладки заполнение нулями ячеек массива можно удалить */
+	pData_s->y_posteriori_s.memForMatrix[VGCS_ACC_ERR_X][0u] = (__VGCS_FPT__) 0.0;
+	pData_s->y_posteriori_s.memForMatrix[VGCS_ACC_ERR_Y][0u] = (__VGCS_FPT__) 0.0;
+	pData_s->y_posteriori_s.memForMatrix[VGCS_ACC_ERR_Z][0u] = (__VGCS_FPT__) 0.0;
+
+	pData_s->y_posteriori_s.memForMatrix[VGCS_VEL_X][0u] = *pVel++;
+	pData_s->y_posteriori_s.memForMatrix[VGCS_VEL_Y][0u] = *pVel++;
+	pData_s->y_posteriori_s.memForMatrix[VGCS_VEL_Z][0u] = *pVel;
+
+	__VGCS_SetFlagGNSSDataUpdate();
 }
 /*#### |End  | <-- Секция - "Прототипы глобальных функций" ###################*/
 
@@ -490,9 +532,8 @@ __VGCS_CheckMatrixStructValidation(
  *
  * @return   None
  */
-#define __VGCS_CheckMatrixStructValidation(x)
+#define __VGCS_CheckMatrixStructValidation(x) 	(x)
 #endif
-
 
 /*#### |End  | <-- Секция - "Определение макросов" ###########################*/
 

@@ -21,8 +21,57 @@
 
 
 /*#### |Begin| --> Секция - "Прототипы локальных функций" ####################*/
+static void __VGCS_FNC_ONCE_MEMORY_LOCATION
+VGCS_Init_NoiseMatrix(
+	ukfmo_matrix_s 	*pNoiseMat,
+	__VGCS_FPT__ 	*pNoiseMatDiag);
+
 static vgcs_fnc_status_e
 VGCS_Step2_ProragateEachSigmaPointsThroughPrediction(
+	vgcs_data_s *pData_s);
+
+static vgcs_fnc_status_e
+VGCS_Step1_CalculateErrorCovarianceMatrixSquareRoot(
+	vgcs_data_s *pData_s);
+
+static vgcs_fnc_status_e
+VGCS_Step1_GeterateTheSigmaPoints(
+	vgcs_data_s *pData_s);
+
+static vgcs_fnc_status_e
+VGCS_Step2_CalculateMeanOfPredictedState(
+	vgcs_data_s *pData_s);
+
+static vgcs_fnc_status_e
+VGCS_Step2_CalculateCovarianceOfPredictedState(
+	vgcs_data_s *pData_s);
+
+static vgcs_fnc_status_e
+VGCS_Step3_PropagateEachSigmaPointThroughObservation(
+	vgcs_data_s *pData_s);
+
+static vgcs_fnc_status_e
+VGCS_Step3_CalculateMeanOfPredictedOutput(
+	vgcs_data_s *pData_s);
+
+static vgcs_fnc_status_e
+VGCS_Step3_CalculateCovarianceOfPredictedOutput(
+	vgcs_data_s *pData_s);
+
+static vgcs_fnc_status_e
+VGCS_Step3_CalculateCrossCovarOfStateAndOut(
+	vgcs_data_s *pData_s);
+
+static vgcs_fnc_status_e
+VGCS_Step4_CalcKalmanGain(
+	vgcs_data_s *pData_s);
+
+static vgcs_fnc_status_e
+VGCS_Step4_UpdateStateEstimate(
+	vgcs_data_s *pData_s);
+
+static vgcs_fnc_status_e
+VGCS_Step4_UpdateErrorCovariance(
 	vgcs_data_s *pData_s);
 /*#### |End  | <-- Секция - "Прототипы локальных функций" ####################*/
 
@@ -38,6 +87,15 @@ VGCS_InitStruct(
 	pUKF_s->scalParams_s.kappa 	= (__VGCS_FPT__) 0.0;
 
 	/* @TODO Сброс периода интегрирования */
+	pUKF_s->dt = (__VGCS_FPT__) 0.0;
+
+	/* Сброс матрицы шумов в нуль */
+	size_t i;
+	for (i = 0u; i < VGCS_LEN_STATE; i++)
+	{
+		pUKF_s->Q_mat_a[i] = (__VGCS_FPT__) 0.0;
+		pUKF_s->R_mat_a[i] = (__VGCS_FPT__) 0.0;
+	}
 }
 
 void __VGCS_FNC_ONCE_MEMORY_LOCATION
@@ -51,27 +109,25 @@ VGSS_Init_MatrixStructs(
 
 	/* Инициализация матрицы шума Q */
 	UKFMO_MatrixInit(
-		__VGCS_GET_ADDR_MATRIX_STRUCT_Q_k(pData_s),
+		&pData_s->noiseMatrix_s.QMat_s.mat_s,
 		VGCS_LEN_MATRIX_ROW,
 		VGCS_LEN_MATRIX_COL,
-		__VGCS_GET_ADDR_MATRIX_MEMORY_Q_k(pData_s)
+		pData_s->noiseMatrix_s.QMat_s.memForMatrix[0u]
 	);
-	__VGCS_CheckMatrixStructValidation(
-		__VGCS_GET_ADDR_MATRIX_STRUCT_Q_k(pData_s));
 	initMatrixPointers_s.pMatrix_s_a[UKFSIF_INIT_Q] =
-		__VGCS_GET_ADDR_MATRIX_STRUCT_Q_k(pData_s);
+		__VGCS_CheckMatrixStructValidation(
+			&pData_s->noiseMatrix_s.QMat_s.mat_s);
 
 	/* Инициализация матрицы шума R */
 	UKFMO_MatrixInit(
-		__VGCS_GET_ADDR_MATRIX_STRUCT_R_k(pData_s),
+		&pData_s->noiseMatrix_s.RMat_s.mat_s,
 		VGCS_LEN_MATRIX_ROW,
 		VGCS_LEN_MATRIX_COL,
-		__VGCS_GET_ADDR_MATRIX_MEMORY_R_k(pData_s)
+		pData_s->noiseMatrix_s.RMat_s.memForMatrix[0u]
 	);
-	__VGCS_CheckMatrixStructValidation(
-		__VGCS_GET_ADDR_MATRIX_STRUCT_R_k(pData_s));
 	initMatrixPointers_s.pMatrix_s_a[UKFSIF_INIT_R] =
-		__VGCS_GET_ADDR_MATRIX_STRUCT_R_k(pData_s);
+		__VGCS_CheckMatrixStructValidation(
+			&pData_s->noiseMatrix_s.RMat_s.mat_s);
 
 	/* Инициализация матрицы пространства состояний */
 	UKFMO_MatrixInit(
@@ -80,10 +136,9 @@ VGSS_Init_MatrixStructs(
 		VGCS_LEN_MATRIX_COL,					/* !< Количество столбцов */
 		pData_s->stateMat_s.memForMatrix[0u] 	/* !< Указатель на область памяти для хранения матрицы */
 	);
-	__VGCS_CheckMatrixStructValidation(
-		&pData_s->stateMat_s.mat_s);
 	initMatrixPointers_s.pMatrix_s_a[UKFSIF_INIT_x_LxL] =
-		&pData_s->stateMat_s.mat_s;
+		__VGCS_CheckMatrixStructValidation(
+			&pData_s->stateMat_s.mat_s);
 
 	/* Инициализация вектора пространства состояний */
 	UKFMO_MatrixInit(
@@ -91,18 +146,18 @@ VGSS_Init_MatrixStructs(
 		VGCS_LEN_STATE,
 		1u,
 		pData_s->x_apriori_s.memForMatrix[0u]);
-	__VGCS_CheckMatrixStructValidation(&pData_s->x_apriori_s.mat_s);
 	initMatrixPointers_s.pMatrix_s_a[UKFSIF_INIT_x_apriori] =
-		&pData_s->x_apriori_s.mat_s;
+		__VGCS_CheckMatrixStructValidation(
+			&pData_s->x_apriori_s.mat_s);
 
 	UKFMO_MatrixInit(
 		&pData_s->x_posteriori_s.mat_s,
 		VGCS_LEN_STATE,
 		1u,
 		pData_s->x_posteriori_s.memForMatrix[0u]);
-	__VGCS_CheckMatrixStructValidation(&pData_s->x_posteriori_s.mat_s);
 	initMatrixPointers_s.pMatrix_s_a[UKFSIF_INIT_x_posteriori] =
-		&pData_s->x_posteriori_s.mat_s;
+		__VGCS_CheckMatrixStructValidation(
+			&pData_s->x_posteriori_s.mat_s);
 
 	/* Инициализация матрицы сигма-точек */
 	UKFMO_MatrixInit(
@@ -111,10 +166,9 @@ VGSS_Init_MatrixStructs(
 		VGCS_LEN_SIGMA_COL,
 		pData_s->chiSigmaMat_s.memForMatrix[0u]
 	);
-	__VGCS_CheckMatrixStructValidation(
-		&pData_s->chiSigmaMat_s.mat_s);
 	initMatrixPointers_s.pMatrix_s_a[UKFSIF_INIT_chi_predict] =
-		&pData_s->chiSigmaMat_s.mat_s;
+		__VGCS_CheckMatrixStructValidation(
+			&pData_s->chiSigmaMat_s.mat_s);
 
 	/* Инициализация матрицы сигма-точек (после функции преобразования) */
 	UKFMO_MatrixInit(
@@ -123,10 +177,9 @@ VGSS_Init_MatrixStructs(
 		VGCS_LEN_SIGMA_COL,
 		pData_s->chiSigmaPostMat_s.memForMatrix[0u]
 	);
-	__VGCS_CheckMatrixStructValidation(
-		&pData_s->chiSigmaPostMat_s.mat_s);
 	initMatrixPointers_s.pMatrix_s_a[UKFSIF_INIT_chi_apriori] =
-		&pData_s->chiSigmaPostMat_s.mat_s;
+		__VGCS_CheckMatrixStructValidation(
+			&pData_s->chiSigmaPostMat_s.mat_s);
 
 	/* Инициализация матрицы квадратного корня от матрицы ковариации "P" */
 	UKFMO_MatrixInit(
@@ -135,10 +188,9 @@ VGSS_Init_MatrixStructs(
 		VGCS_LEN_MATRIX_COL,
 		pData_s->sqrtP_apriori_s.memForMatrix[0u]
 	);
-	__VGCS_CheckMatrixStructValidation(
-		&pData_s->sqrtP_apriori_s.mat_s);
 	initMatrixPointers_s.pMatrix_s_a[UKFSIF_INIT_P_sqrt] =
-		&pData_s->sqrtP_apriori_s.mat_s;
+		__VGCS_CheckMatrixStructValidation(
+			&pData_s->sqrtP_apriori_s.mat_s);
 
 	UKFMO_MatrixInit(
 		&pData_s->muMean_s.mat_s,
@@ -146,10 +198,9 @@ VGSS_Init_MatrixStructs(
 		1u,
 		pData_s->muMean_s.memForMatrix[0u]
 	);
-	__VGCS_CheckMatrixStructValidation(
-		&pData_s->muMean_s.mat_s);
 	initMatrixPointers_s.pMatrix_s_a[UKFSIF_INIT_muMean] =
-		&pData_s->muMean_s.mat_s;
+		__VGCS_CheckMatrixStructValidation(
+			&pData_s->muMean_s.mat_s);
 
 	UKFMO_MatrixInit(
 		&pData_s->muCovar_s.mat_s,
@@ -157,10 +208,9 @@ VGSS_Init_MatrixStructs(
 		1u,
 		pData_s->muCovar_s.memForMatrix[0u]
 	);
-	__VGCS_CheckMatrixStructValidation(
-		&pData_s->muCovar_s.mat_s);
 	initMatrixPointers_s.pMatrix_s_a[UKFSIF_INIT_muCovar] =
-		&pData_s->muCovar_s.mat_s;
+		__VGCS_CheckMatrixStructValidation(
+			&pData_s->muCovar_s.mat_s);
 
 	UKFMO_MatrixInit(
 		&pData_s->chi_apriory_minus_x_apriory_s.mat_s,
@@ -168,7 +218,7 @@ VGSS_Init_MatrixStructs(
 		1u,
 		pData_s->chi_apriory_minus_x_apriory_s.memForMatrix[0u]
 	);
-	initMatrixPointers_s.pMatrix_s_a[UKFSIF_INIT_STEP2_chi_priory_MINUS_x_priory] =
+	initMatrixPointers_s.pMatrix_s_a[UKFSIF_INIT_chi_priory_MINUS_x_priory] =
 		__VGCS_CheckMatrixStructValidation(
 			&pData_s->chi_apriory_minus_x_apriory_s.mat_s);
 
@@ -178,7 +228,7 @@ VGSS_Init_MatrixStructs(
 		VGCS_LEN_STATE,
 		pData_s->chi_apriory_minus_x_apriory_Transpose_s.memForMatrix[0u]
 	);
-	initMatrixPointers_s.pMatrix_s_a[UKFSIF_INIT_STEP2_chi_priory_MINUS_x_priory_TRANSPOSE] =
+	initMatrixPointers_s.pMatrix_s_a[UKFSIF_INIT_chi_priory_MINUS_x_priory_TRANSPOSE] =
 		__VGCS_CheckMatrixStructValidation(
 			&pData_s->chi_apriory_minus_x_apriory_Transpose_s.mat_s);
 
@@ -188,7 +238,7 @@ VGSS_Init_MatrixStructs(
 		VGCS_LEN_STATE,
 		pData_s->resultOfMult2Matrix_s.memForMatrix[0u]
 	);
-	initMatrixPointers_s.pMatrix_s_a[UKFSIF_INIT_STEP2_result_of_mult_2_matrix] =
+	initMatrixPointers_s.pMatrix_s_a[UKFSIF_INIT_result_of_mult_2_matrix] =
 		__VGCS_CheckMatrixStructValidation(
 			&pData_s->resultOfMult2Matrix_s.mat_s);
 
@@ -271,13 +321,13 @@ VGSS_Init_MatrixStructs(
 			&pData_s->K_s.mat_s);
 
 	UKFMO_MatrixInit(
-		&pData_s->y_predict_s.mat_s,
+		&pData_s->y_posteriori_s.mat_s,
 		VGCS_LEN_MATRIX_ROW,
 		1u,
-		pData_s->y_predict_s.memForMatrix[0u]);
+		pData_s->y_posteriori_s.memForMatrix[0u]);
 	initMatrixPointers_s.pMatrix_s_a[UKFSIF_INIT_meas] =
 		__VGCS_CheckMatrixStructValidation(
-			&pData_s->y_predict_s.mat_s);
+			&pData_s->y_posteriori_s.mat_s);
 
 	UKFMO_MatrixInit(
 		&pData_s->innovation_s.mat_s,
@@ -316,17 +366,228 @@ VGSS_Init_MatrixStructs(
 }
 
 void __VGCS_FNC_ONCE_MEMORY_LOCATION
+VGCS_Init_NoiseMatrix(
+	ukfmo_matrix_s 	*pNoiseMat,
+	__VGCS_FPT__ 	*pNoiseMatDiag)
+{
+	/* Сброс матрицы шумов в нуль */
+	UKFMO_MatrixZeros(pNoiseMatDiag);
+
+	size_t i;
+	for (i = 0u; i < pNoiseMat->numCols; i++)
+	{
+		if (pNoiseMatDiag[i] == (__VGCS_FPT__) 0.0)
+		{
+			/* Если попоали сюда, значит диагональ матрицы шума не
+			 * инициализирована */
+			while(1);
+		}
+		pNoiseMat->pData[i * i] = *pNoiseMatDiag++;
+	}
+}
+
+/*-------------------------------------------------------------------------*//**
+ * @author    Mickle Isaev
+ * @date      03-сен-2019
+ *
+ * @brief    Функция выполняет инициализацию всех параметров, необходимых
+ *           для работы UKF
+ *
+ * @param[out] 	*pData_s:	Указатель на структуру данных, в которой содержаться
+ * 							параметры, необходимые для работы UKF
+ * @param[in]   *pInit_s:   Указатель на структуру, которая содержит
+ * 							параметры для инициализации UKF
+ *
+ * @return  None
+ */
+void __VGCS_FNC_ONCE_MEMORY_LOCATION
 VGSS_Init_All(
 	vgcs_data_s 		*pData_s,
 	vgcs_data_init_s 	*pInit_s)
 {
 	/* Инициализация всех структур матриц */
-//	VGSS_Init_MatrixStructs(pData_s);
+	VGSS_Init_MatrixStructs(
+		pData_s,
+		&pData_s->ukfsifMatrixPointers_s);
 
-	/* @TODO вычисление корня квадратного из (lambda + len) и запись в поле структуры */
+	/* Вычисление корня квадратного из (lambda + len) и запись в поле структуры */
+	pData_s->scalar_s.sqrtLamLen =
+		__VGCS_sqrt(
+			UKFSIF_GetLambda(
+				VGCS_LEN_STATE,
+				pInit_s->scalParams_s.alpha,
+				pInit_s->scalParams_s.kappa) + VGCS_LEN_STATE);
 
-	/* @TODO Установка периода интегрирования */
+	/* Установка периода интегрирования */
+	#if defined (__UKFMO_CHEKING_ENABLE__)
+	if (pInit_s->dt == (__VGCS_FPT__)0.0)
+	{
+		__UKFMO_ALL_INTERRUPTS_DIS();
+		while (1);
+	}
+	#endif
+
+	/* Обновление периода интегрирования */
+	__VGCS_UpdateDt(pData_s, pInit_s->dt);
+
+	/* Инициализация вектора muMean */
+	UKFSIF_InitWeightVectorMean(
+		&pInit_s->scalParams_s,
+		pData_s->muMean_s.memForMatrix[0u],
+		VGCS_LEN_STATE);
+
+	/* Инициализация вектора muCov */
+	UKFSIF_InitWeightVectorCov(
+		&pInit_s->scalParams_s,
+		pData_s->muCovar_s.memForMatrix[0u],
+		VGCS_LEN_STATE);
+
+	/* Заполнение матрицы Q */
+	VGCS_Init_NoiseMatrix(
+		&pData_s->noiseMatrix_s.QMat_s.mat_s,
+		pInit_s->Q_mat_a);
+
+	/* Заполнение матрицы R */
+	VGCS_Init_NoiseMatrix(
+		&pData_s->noiseMatrix_s.RMat_s.mat_s,
+		pInit_s->R_mat_a);
+
+	/* Заполнение матрицы P */
+	UKFMO_MatrixIdentity(
+		&pData_s->P_predict_s.mat_s);
 }
+
+/*-------------------------------------------------------------------------*//**
+ * @author    Mickle Isaev
+ * @date      03-сен-2019
+ *
+ * @brief    Функция выполняет все шаги, предусмотренные алгоритмом UKF
+ *
+ * @param[in,out] 	*pData_s:	Указатель на структуру данных, в которой содержаться
+ * 								параметры, необходимые для работы UKF
+ *
+ * @return 	Статус функции
+ *                 @see "vgcs_fnc_status_e"
+ */
+vgcs_fnc_status_e
+VGCS_UKF_UpdateVectState(
+	vgcs_data_s *pData_s)
+{
+	#if defined (__UKFMO_CHEKING_ENABLE__)
+	ukfmo_fnc_status_e matOperationStatus_e = UKFMO_OK;
+	#endif
+
+	/* Step 1 ################################################################ */
+	/* Были ли получены новые данные от акселерометра */
+	if (__VGCS_IsFlagAccDataUpdateSet() == 1u)
+	{
+		/* Сброс флага */
+		__VGCS_ReSetFlagAccDataUpdate();
+
+
+		/* Calculate error covariance matrix square root */
+		#if defined (__UKFMO_CHEKING_ENABLE__)
+		matOperationStatus_e =
+		#endif
+			VGCS_Step1_CalculateErrorCovarianceMatrixSquareRoot(
+				pData_s);
+
+		/* Calculate the sigma-points */
+		#if defined (__UKFMO_CHEKING_ENABLE__)
+		matOperationStatus_e =
+		#endif
+			VGCS_Step1_GeterateTheSigmaPoints(
+				pData_s);
+
+		/* Step 2 ################################################################ */
+		/* Propagate each sigma-point through prediction */
+		#if defined (__UKFMO_CHEKING_ENABLE__)
+		matOperationStatus_e =
+		#endif
+			VGCS_Step2_ProragateEachSigmaPointsThroughPrediction(
+				pData_s);
+
+		/* Calculate mean of predicted state */
+		#if defined (__UKFMO_CHEKING_ENABLE__)
+		matOperationStatus_e =
+		#endif
+			VGCS_Step2_CalculateMeanOfPredictedState(
+				pData_s);
+
+		/* Calculate covariance of predicted state  */
+		#if defined (__UKFMO_CHEKING_ENABLE__)
+		matOperationStatus_e =
+		#endif
+			VGCS_Step2_CalculateCovarianceOfPredictedState(
+				pData_s);
+	}
+
+	/* Step 3 ################################################################ */
+	/* Если были приняты новые данные от GNSS модуля */
+	if (__VGCS_IsFlagGNSSDataUpdateSet() == 1u)
+	{
+		/* Сброс флага */
+		__VGCS_ReSetFlagGNSSDataUpdate();
+
+
+		/* Propagate each sigma-point through observation */
+		#if defined (__UKFMO_CHEKING_ENABLE__)
+		matOperationStatus_e =
+		#endif
+			VGCS_Step3_PropagateEachSigmaPointThroughObservation(
+				pData_s);
+
+		/* Calculate mean of predicted output */
+		#if defined (__UKFMO_CHEKING_ENABLE__)
+		matOperationStatus_e =
+		#endif
+			VGCS_Step3_CalculateMeanOfPredictedOutput(
+				pData_s);
+
+		/* Calculate covariance of predicted output */
+		#if defined (__UKFMO_CHEKING_ENABLE__)
+		matOperationStatus_e =
+		#endif
+			VGCS_Step3_CalculateCovarianceOfPredictedOutput(
+				pData_s);
+
+		/* Calculate cross-covariance of state and output */
+		#if defined (__UKFMO_CHEKING_ENABLE__)
+		matOperationStatus_e =
+		#endif
+			VGCS_Step3_CalculateCrossCovarOfStateAndOut(
+				pData_s);
+
+		/* Step 4 ################################################################ */
+		/* Calculate Kalman gain */
+		#if defined (__UKFMO_CHEKING_ENABLE__)
+		matOperationStatus_e =
+		#endif
+			VGCS_Step4_CalcKalmanGain(
+				pData_s);
+
+		/* Update state estimate */
+		#if defined (__UKFMO_CHEKING_ENABLE__)
+		matOperationStatus_e =
+		#endif
+			VGCS_Step4_UpdateStateEstimate(
+				pData_s);
+
+		/* Update error covariance */
+		#if defined (__UKFMO_CHEKING_ENABLE__)
+		matOperationStatus_e =
+		#endif
+			VGCS_Step4_UpdateErrorCovariance(
+				pData_s);
+	}
+
+	#if defined (__UKFMO_CHEKING_ENABLE__)
+	return (matOperationStatus_e);
+	#else
+	return (UKFMO_OK);
+	#endif
+}
+
 /*#### |End  | <-- Секция - "Описание глобальных функций" ####################*/
 
 
@@ -335,40 +596,30 @@ VGSS_Init_All(
 
 
 /*#### |Begin| --> Секция - "Описание локальных функций" #####################*/
-
 vgcs_fnc_status_e
-VGCS_Step1_GeterateTheSigmaPoints(
+VGCS_Step1_CalculateErrorCovarianceMatrixSquareRoot(
 	vgcs_data_s *pData_s)
 {
-	/* #### Calculate error covariance matrix square root #### */
-
-	/* Копирование матрицы P в матрицу SQRT_P */
-	UKFMO_CopyMatrix(
-		&pData_s->sqrtP_apriori_s.mat_s,
-		&pData_s->P_predict_s.mat_s);
-
 	#if defined (__UKFMO_CHEKING_ENABLE__)
 	ukfmo_fnc_status_e matOperationStatus_e;
 	#endif
 
-	/* Проверка матрицы */
-	__VGCS_CheckMatrixStructValidation(
-		&pData_s->sqrtP_apriori_s.mat_s);
+	/* Копирование матрицы P в матрицу SQRT_P */
+	#if defined (__UKFMO_CHEKING_ENABLE__)
+	matOperationStatus_e =
+	#endif
+		UKFMO_CopyMatrix(
+			__VGCS_CheckMatrixStructValidation(
+				&pData_s->sqrtP_apriori_s.mat_s),
+			__VGCS_CheckMatrixStructValidation(
+				&pData_s->P_predict_s.mat_s));
 
-	/* Нижнее разложение Холецкого */
 	#if defined (__UKFMO_CHEKING_ENABLE__)
 	matOperationStatus_e =
 	#endif
 		UKFMO_GetCholeskyLow(
-			&pData_s->sqrtP_apriori_s.mat_s);
-
-	/* Calculate the sigma-points */
-	UKFSIF_CalculateTheSigmaPoints_2L1(
-		&pData_s->stateMat_s	.memForMatrix[0u][0u],
-		&pData_s->chiSigmaMat_s	.memForMatrix[0u][0u],
-		&pData_s->sqrtP_apriori_s	.memForMatrix[0u][0u],
-		pData_s->scalar_s		.sqrtLamLen,
-		VGCS_LEN_SIGMA_ROW);
+			__VGCS_CheckMatrixStructValidation(
+				&pData_s->sqrtP_apriori_s.mat_s));
 
 	#if defined (__UKFMO_CHEKING_ENABLE__)
 	return (matOperationStatus_e);
@@ -378,17 +629,15 @@ VGCS_Step1_GeterateTheSigmaPoints(
 }
 
 vgcs_fnc_status_e
-VGCS_Step2_PredictionTransformation(
+VGCS_Step1_GeterateTheSigmaPoints(
 	vgcs_data_s *pData_s)
 {
-	VGCS_Step2_ProragateEachSigmaPointsThroughPrediction(
-		pData_s);
+	/* Calculate the sigma-points */
+	UKFSIF_Step1_CalculateTheSigmaPoints(
+		&pData_s->ukfsifMatrixPointers_s.calcTheSigmaPoints_s,
+		pData_s->scalar_s.sqrtLamLen);
 
-//	VGCS_Step2_CalculateMeanOfPredictedState(
-//		pData_s);
-//
-//	VGCS_Step2_CalculateCovarianceOfPredictedState(
-//		pData_s);
+	return (UKFMO_OK);
 }
 
 static vgcs_fnc_status_e
@@ -436,19 +685,109 @@ VGCS_Step2_ProragateEachSigmaPointsThroughPrediction(
 	return (UKFMO_OK);
 }
 
-//vgcs_fnc_status_e
-//VGCS_Step2_CalculateMeanOfPredictedState(
-//	vgcs_data_s *pData_s)
-//{
-//
-//}
-//
-//vgcs_fnc_status_e
-//VGCS_Step2_CalculateCovarianceOfPredictedState(
-//	vgcs_data_s *pData_s)
-//{
-//
-//}
+vgcs_fnc_status_e
+VGCS_Step2_CalculateMeanOfPredictedState(
+	vgcs_data_s *pData_s)
+{
+	UKFSIF_Step2_CalculateMeanOfPredictedState(
+		&pData_s->ukfsifMatrixPointers_s.calcMeanOfPredictState_s);
+
+	return (UKFMO_OK);
+}
+
+vgcs_fnc_status_e
+VGCS_Step2_CalculateCovarianceOfPredictedState(
+	vgcs_data_s *pData_s)
+{
+	UKFSIF_Step2_CalculateCovarianceOfPredictedState(
+		&pData_s->ukfsifMatrixPointers_s.calcCovarOfPredictState_s);
+
+	return (UKFMO_OK);
+}
+
+vgcs_fnc_status_e
+VGCS_Step3_PropagateEachSigmaPointThroughObservation(
+	vgcs_data_s *pData_s)
+{
+	#if defined (__UKFMO_CHEKING_ENABLE__)
+	ukfmo_fnc_status_e matOperationStatus_e;
+	#endif
+
+	/* Т.к. матрица psi_k|k-1 полностью соответствует матрице chi_k|k-1, то
+	 * выполним копирование матрицы без преобразования */
+	#if defined (__UKFMO_CHEKING_ENABLE__)
+	matOperationStatus_e =
+	#endif
+		UKFMO_CopyMatrix(
+			__VGCS_CheckMatrixStructValidation(&pData_s->psi_apriori_s.mat_s),
+			__VGCS_CheckMatrixStructValidation(&pData_s->chiSigmaMat_s.mat_s));
+
+	#if defined (__UKFMO_CHEKING_ENABLE__)
+	return (matOperationStatus_e);
+	#else
+	return (UKFMO_OK);
+	#endif
+}
+
+vgcs_fnc_status_e
+VGCS_Step3_CalculateMeanOfPredictedOutput(
+	vgcs_data_s *pData_s)
+{
+	UKFSIF_Step3_CalculateMeanOfPredictedOutput(
+		&pData_s->ukfsifMatrixPointers_s.caclMeanOfPredictOut_s);
+
+	return (UKFMO_OK);
+}
+
+vgcs_fnc_status_e
+VGCS_Step3_CalculateCovarianceOfPredictedOutput(
+	vgcs_data_s *pData_s)
+{
+	UKFSIF_Step3_CalculateCovarianceOfPredictedOutput(
+		&pData_s->ukfsifMatrixPointers_s.caclCovarOfPredictOut_s);
+
+	return (UKFMO_OK);
+}
+
+vgcs_fnc_status_e
+VGCS_Step3_CalculateCrossCovarOfStateAndOut(
+	vgcs_data_s *pData_s)
+{
+	UKFSIF_Step3_CalculateCrossCovarOfStateAndOut(
+		&pData_s->ukfsifMatrixPointers_s.calcCrossCovarOfStateAndOut_s);
+
+	return (UKFMO_OK);
+}
+
+vgcs_fnc_status_e
+VGCS_Step4_CalcKalmanGain(
+	vgcs_data_s *pData_s)
+{
+	UKFSIF_Step4_CalcKalmanGain(
+		&pData_s->ukfsifMatrixPointers_s.calcKalmanGain_s);
+
+	return (UKFMO_OK);
+}
+
+vgcs_fnc_status_e
+VGCS_Step4_UpdateStateEstimate(
+	vgcs_data_s *pData_s)
+{
+	UKFSIF_Step4_UpdateStateEstimate(
+		&pData_s->ukfsifMatrixPointers_s.updateState_s);
+
+	return (UKFMO_OK);
+}
+
+vgcs_fnc_status_e
+VGCS_Step4_UpdateErrorCovariance(
+	vgcs_data_s *pData_s)
+{
+	UKFSIF_Step4_UpdateErrorCovariance(
+		&pData_s->ukfsifMatrixPointers_s.updateErrCov_s);
+
+	return (UKFMO_OK);
+}
 /*#### |End  | <-- Секция - "Описание локальных функций" #####################*/
 
 
