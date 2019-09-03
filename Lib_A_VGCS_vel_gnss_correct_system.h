@@ -177,6 +177,12 @@ typedef struct
 	__VGCS_FPT__ memForMatrix[VGCS_LEN_STATE][1u];
 } vgcs_matrix_6_1_s;
 
+typedef struct
+{
+	ukfmo_matrix_s mat_s;
+	__VGCS_FPT__ memForMatrix[VGCS_LEN_SIGMA_COL][1u];
+} vgcs_matrix_13_1_s;
+
 /*-------------------------------------------------------------------------*//**
  * @brief  Структура для матрицы размерностью 6x13
  */
@@ -259,14 +265,14 @@ typedef struct
 	vgca_noise_matrix_s noiseMatrix_s;
 
 	/*------------------------------------------------------------------------*//**
-	 * @brief Матрицы ковариаций ("P")
+	 * @brief Матрицы ковариаций ("P_k-1")
 	 */
-	vgcs_matrix_6x6_s 	covMat_s;
+//	vgcs_matrix_6x6_s 	covMat_s;
 
 	/*------------------------------------------------------------------------*//**
 	 * @brief Корень квадратный от матрицы ковариаций ("sqrt P")
 	 */
-	vgcs_matrix_6x6_s 	sqrtCovMat_s;
+	vgcs_matrix_6x6_s 	sqrtP_apriori_s;
 
 	/*------------------------------------------------------------------------*//**
 	 * @brief Матрица распределения сигма-точек (chi k-1)
@@ -279,6 +285,41 @@ typedef struct
 	vgcs_matrix_6_13_s 	chiSigmaPostMat_s;
 
 	vgcs_scalar_params_s scalar_s;
+
+	vgcs_matrix_6_1_s x_apriori_s;
+
+	vgcs_matrix_6_1_s x_posteriori_s;
+
+	vgcs_matrix_13_1_s muMean_s;
+	vgcs_matrix_13_1_s muCovar_s;
+
+	vgcs_matrix_6_1_s chi_apriory_minus_x_apriory_s;
+	vgcs_matrix_6_1_s chi_apriory_minus_x_apriory_Transpose_s;
+	vgcs_matrix_6x6_s resultOfMult2Matrix_s;
+
+	vgcs_matrix_6x6_s P_apriori_s;
+
+	vgcs_matrix_6x6_s P_predict_s;
+
+	vgcs_matrix_6_13_s psi_apriori_s;
+
+	vgcs_matrix_6_1_s y_apriori_s;
+
+	vgcs_matrix_6x6_s Pyy_s;
+
+	vgcs_matrix_6x6_s PyyInv_s;
+
+	vgcs_matrix_6x6_s Pxy_s;
+
+	vgcs_matrix_6x6_s K_s;
+
+	vgcs_matrix_6x6_s K_Transpose_s;
+
+	vgcs_matrix_6_1_s psi_priory_MINUS_y_priory;
+
+	vgcs_matrix_6_1_s y_predict_s;
+
+	vgcs_matrix_6_1_s innovation_s;
 } vgcs_data_s;
 
 /*-------------------------------------------------------------------------*//**
@@ -380,6 +421,31 @@ extern void __VGCS_FNC_ONCE_MEMORY_LOCATION
 VGSS_Init_All(
 	vgcs_data_s 		*pData_s,
 	vgcs_data_init_s 	*pInit_s);
+
+extern void __VGCS_FNC_ONCE_MEMORY_LOCATION
+VGSS_Init_MatrixStructs(
+	vgcs_data_s 		*pData_s,
+	ukfsif_all_data_s 	*pMatrixPointers_s);
+
+__VGCS_ALWAYS_INLINE void
+VGCS_UpdateAccInWorldFrame(
+	vgcs_data_s 		*pData_s,
+	__VGCS_FPT__ 		*pAcc)
+{
+	pData_s->meas_s.accWorldFrame_s.new_a[0u] = *pAcc++;
+	pData_s->meas_s.accWorldFrame_s.new_a[1u] = *pAcc++;
+	pData_s->meas_s.accWorldFrame_s.new_a[2u] = *pAcc;
+}
+
+__VGCS_ALWAYS_INLINE void
+VGCS_UpdateSpeedByGNSS(
+	vgcs_data_s 	*pData_s,
+	__VGCS_FPT__ 	*pVel)
+{
+	pData_s->meas_s.velByGNSSWorldFrame_s.new_a[0u] = *pVel++;
+	pData_s->meas_s.velByGNSSWorldFrame_s.new_a[1u] = *pVel++;
+	pData_s->meas_s.velByGNSSWorldFrame_s.new_a[2u] = *pVel;
+}
 /*#### |End  | <-- Секция - "Прототипы глобальных функций" ###################*/
 
 
