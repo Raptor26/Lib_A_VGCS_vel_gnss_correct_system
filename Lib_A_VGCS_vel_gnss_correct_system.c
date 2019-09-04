@@ -26,51 +26,51 @@ VGCS_Init_NoiseMatrix(
 	ukfmo_matrix_s 	*pNoiseMat,
 	__VGCS_FPT__ 	*pNoiseMatDiag);
 
-static vgcs_fnc_status_e
+static vgcs_fnc_status_e __VGCS_FNC_LOOP_MEMORY_LOCATION
 VGCS_Step2_ProragateEachSigmaPointsThroughPrediction(
 	vgcs_data_s *pData_s);
 
-static vgcs_fnc_status_e
+static vgcs_fnc_status_e __VGCS_FNC_LOOP_MEMORY_LOCATION
 VGCS_Step1_CalculateErrorCovarianceMatrixSquareRoot(
 	vgcs_data_s *pData_s);
 
-static vgcs_fnc_status_e
+static vgcs_fnc_status_e __VGCS_FNC_LOOP_MEMORY_LOCATION
 VGCS_Step1_GeterateTheSigmaPoints(
 	vgcs_data_s *pData_s);
 
-static vgcs_fnc_status_e
+static vgcs_fnc_status_e __VGCS_FNC_LOOP_MEMORY_LOCATION
 VGCS_Step2_CalculateMeanOfPredictedState(
 	vgcs_data_s *pData_s);
 
-static vgcs_fnc_status_e
+static vgcs_fnc_status_e __VGCS_FNC_LOOP_MEMORY_LOCATION
 VGCS_Step2_CalculateCovarianceOfPredictedState(
 	vgcs_data_s *pData_s);
 
-static vgcs_fnc_status_e
+static vgcs_fnc_status_e __VGCS_FNC_LOOP_MEMORY_LOCATION
 VGCS_Step3_PropagateEachSigmaPointThroughObservation(
 	vgcs_data_s *pData_s);
 
-static vgcs_fnc_status_e
+static vgcs_fnc_status_e __VGCS_FNC_LOOP_MEMORY_LOCATION
 VGCS_Step3_CalculateMeanOfPredictedOutput(
 	vgcs_data_s *pData_s);
 
-static vgcs_fnc_status_e
+static vgcs_fnc_status_e __VGCS_FNC_LOOP_MEMORY_LOCATION
 VGCS_Step3_CalculateCovarianceOfPredictedOutput(
 	vgcs_data_s *pData_s);
 
-static vgcs_fnc_status_e
+static vgcs_fnc_status_e __VGCS_FNC_LOOP_MEMORY_LOCATION
 VGCS_Step3_CalculateCrossCovarOfStateAndOut(
 	vgcs_data_s *pData_s);
 
-static vgcs_fnc_status_e
+static vgcs_fnc_status_e __VGCS_FNC_LOOP_MEMORY_LOCATION
 VGCS_Step4_CalcKalmanGain(
 	vgcs_data_s *pData_s);
 
-static vgcs_fnc_status_e
+static vgcs_fnc_status_e __VGCS_FNC_LOOP_MEMORY_LOCATION
 VGCS_Step4_UpdateStateEstimate(
 	vgcs_data_s *pData_s);
 
-static vgcs_fnc_status_e
+static vgcs_fnc_status_e __VGCS_FNC_LOOP_MEMORY_LOCATION
 VGCS_Step4_UpdateErrorCovariance(
 	vgcs_data_s *pData_s);
 /*#### |End  | <-- Секция - "Прототипы локальных функций" ####################*/
@@ -371,7 +371,7 @@ VGCS_Init_NoiseMatrix(
 	__VGCS_FPT__ 	*pNoiseMatDiag)
 {
 	/* Сброс матрицы шумов в нуль */
-	UKFMO_MatrixZeros(pNoiseMatDiag);
+	UKFMO_MatrixZeros(pNoiseMat);
 
 	size_t i;
 	for (i = 0u; i < pNoiseMat->numCols; i++)
@@ -469,7 +469,7 @@ VGSS_Init_All(
  * @return 	Статус функции
  *                 @see "vgcs_fnc_status_e"
  */
-vgcs_fnc_status_e
+vgcs_fnc_status_e __VGCS_FNC_LOOP_MEMORY_LOCATION
 VGCS_UKF_UpdateVectState(
 	vgcs_data_s *pData_s)
 {
@@ -596,7 +596,8 @@ VGCS_UKF_UpdateVectState(
 
 
 /*#### |Begin| --> Секция - "Описание локальных функций" #####################*/
-vgcs_fnc_status_e
+
+static vgcs_fnc_status_e __VGCS_FNC_LOOP_MEMORY_LOCATION
 VGCS_Step1_CalculateErrorCovarianceMatrixSquareRoot(
 	vgcs_data_s *pData_s)
 {
@@ -628,7 +629,7 @@ VGCS_Step1_CalculateErrorCovarianceMatrixSquareRoot(
 	#endif
 }
 
-vgcs_fnc_status_e
+static vgcs_fnc_status_e __VGCS_FNC_LOOP_MEMORY_LOCATION
 VGCS_Step1_GeterateTheSigmaPoints(
 	vgcs_data_s *pData_s)
 {
@@ -640,7 +641,7 @@ VGCS_Step1_GeterateTheSigmaPoints(
 	return (UKFMO_OK);
 }
 
-static vgcs_fnc_status_e
+static vgcs_fnc_status_e __VGCS_FNC_LOOP_MEMORY_LOCATION
 VGCS_Step2_ProragateEachSigmaPointsThroughPrediction(
 	vgcs_data_s *pData_s)
 {
@@ -685,7 +686,7 @@ VGCS_Step2_ProragateEachSigmaPointsThroughPrediction(
 	return (UKFMO_OK);
 }
 
-vgcs_fnc_status_e
+static vgcs_fnc_status_e __VGCS_FNC_LOOP_MEMORY_LOCATION
 VGCS_Step2_CalculateMeanOfPredictedState(
 	vgcs_data_s *pData_s)
 {
@@ -695,7 +696,7 @@ VGCS_Step2_CalculateMeanOfPredictedState(
 	return (UKFMO_OK);
 }
 
-vgcs_fnc_status_e
+static vgcs_fnc_status_e __VGCS_FNC_LOOP_MEMORY_LOCATION
 VGCS_Step2_CalculateCovarianceOfPredictedState(
 	vgcs_data_s *pData_s)
 {
@@ -705,7 +706,7 @@ VGCS_Step2_CalculateCovarianceOfPredictedState(
 	return (UKFMO_OK);
 }
 
-vgcs_fnc_status_e
+static vgcs_fnc_status_e __VGCS_FNC_LOOP_MEMORY_LOCATION
 VGCS_Step3_PropagateEachSigmaPointThroughObservation(
 	vgcs_data_s *pData_s)
 {
@@ -729,7 +730,7 @@ VGCS_Step3_PropagateEachSigmaPointThroughObservation(
 	#endif
 }
 
-vgcs_fnc_status_e
+static vgcs_fnc_status_e __VGCS_FNC_LOOP_MEMORY_LOCATION
 VGCS_Step3_CalculateMeanOfPredictedOutput(
 	vgcs_data_s *pData_s)
 {
@@ -739,7 +740,7 @@ VGCS_Step3_CalculateMeanOfPredictedOutput(
 	return (UKFMO_OK);
 }
 
-vgcs_fnc_status_e
+static vgcs_fnc_status_e __VGCS_FNC_LOOP_MEMORY_LOCATION
 VGCS_Step3_CalculateCovarianceOfPredictedOutput(
 	vgcs_data_s *pData_s)
 {
@@ -749,7 +750,7 @@ VGCS_Step3_CalculateCovarianceOfPredictedOutput(
 	return (UKFMO_OK);
 }
 
-vgcs_fnc_status_e
+static vgcs_fnc_status_e __VGCS_FNC_LOOP_MEMORY_LOCATION
 VGCS_Step3_CalculateCrossCovarOfStateAndOut(
 	vgcs_data_s *pData_s)
 {
@@ -759,7 +760,7 @@ VGCS_Step3_CalculateCrossCovarOfStateAndOut(
 	return (UKFMO_OK);
 }
 
-vgcs_fnc_status_e
+static vgcs_fnc_status_e __VGCS_FNC_LOOP_MEMORY_LOCATION
 VGCS_Step4_CalcKalmanGain(
 	vgcs_data_s *pData_s)
 {
@@ -769,7 +770,7 @@ VGCS_Step4_CalcKalmanGain(
 	return (UKFMO_OK);
 }
 
-vgcs_fnc_status_e
+static vgcs_fnc_status_e __VGCS_FNC_LOOP_MEMORY_LOCATION
 VGCS_Step4_UpdateStateEstimate(
 	vgcs_data_s *pData_s)
 {
@@ -779,7 +780,7 @@ VGCS_Step4_UpdateStateEstimate(
 	return (UKFMO_OK);
 }
 
-vgcs_fnc_status_e
+static vgcs_fnc_status_e __VGCS_FNC_LOOP_MEMORY_LOCATION
 VGCS_Step4_UpdateErrorCovariance(
 	vgcs_data_s *pData_s)
 {

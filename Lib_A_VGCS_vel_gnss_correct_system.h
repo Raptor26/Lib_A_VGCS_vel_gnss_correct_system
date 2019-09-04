@@ -457,6 +457,10 @@ VGSS_Init_MatrixStructs(
 	vgcs_data_s 		*pData_s,
 	ukfsif_all_data_s 	*pMatrixPointers_s);
 
+extern vgcs_fnc_status_e __VGCS_FNC_LOOP_MEMORY_LOCATION
+VGCS_UKF_UpdateVectState(
+	vgcs_data_s *pData_s);
+
 __VGCS_ALWAYS_INLINE void
 VGCS_UpdateAccInWorldFrame(
 	vgcs_data_s 		*pData_s,
