@@ -114,6 +114,9 @@ VGSS_Init_MatrixStructs(
 		VGCS_LEN_MATRIX_COL,
 		pData_s->noiseMatrix_s.QMat_s.memForMatrix[0u]
 	);
+	__UKFMO_CheckMatrixSize(
+		(ukfmo_matrix_s*)&pData_s->noiseMatrix_s.QMat_s.mat_s,
+		sizeof(pData_s->noiseMatrix_s.QMat_s.memForMatrix));
 	initMatrixPointers_s.pMatrix_s_a[UKFSIF_INIT_Q] =
 		__VGCS_CheckMatrixStructValidation(
 			&pData_s->noiseMatrix_s.QMat_s.mat_s);
@@ -125,6 +128,9 @@ VGSS_Init_MatrixStructs(
 		VGCS_LEN_MATRIX_COL,
 		pData_s->noiseMatrix_s.RMat_s.memForMatrix[0u]
 	);
+	__UKFMO_CheckMatrixSize(
+		(ukfmo_matrix_s*)&pData_s->noiseMatrix_s.RMat_s.mat_s,
+		sizeof(pData_s->noiseMatrix_s.RMat_s.memForMatrix));
 	initMatrixPointers_s.pMatrix_s_a[UKFSIF_INIT_R] =
 		__VGCS_CheckMatrixStructValidation(
 			&pData_s->noiseMatrix_s.RMat_s.mat_s);
@@ -136,6 +142,9 @@ VGSS_Init_MatrixStructs(
 		VGCS_LEN_MATRIX_COL,					/* !< Количество столбцов */
 		pData_s->stateMat_s.memForMatrix[0u] 	/* !< Указатель на область памяти для хранения матрицы */
 	);
+	__UKFMO_CheckMatrixSize(
+		(ukfmo_matrix_s*)&pData_s->stateMat_s.mat_s,
+		sizeof (pData_s->stateMat_s.memForMatrix));
 	initMatrixPointers_s.pMatrix_s_a[UKFSIF_INIT_x_LxL] =
 		__VGCS_CheckMatrixStructValidation(
 			&pData_s->stateMat_s.mat_s);
@@ -146,6 +155,9 @@ VGSS_Init_MatrixStructs(
 		VGCS_LEN_STATE,
 		1u,
 		pData_s->x_apriori_s.memForMatrix[0u]);
+	__UKFMO_CheckMatrixSize(
+		(ukfmo_matrix_s*)&pData_s->x_apriori_s.mat_s,
+		sizeof(pData_s->x_apriori_s.memForMatrix));
 	initMatrixPointers_s.pMatrix_s_a[UKFSIF_INIT_x_apriori] =
 		__VGCS_CheckMatrixStructValidation(
 			&pData_s->x_apriori_s.mat_s);
@@ -155,6 +167,9 @@ VGSS_Init_MatrixStructs(
 		VGCS_LEN_STATE,
 		1u,
 		pData_s->x_posteriori_s.memForMatrix[0u]);
+	__UKFMO_CheckMatrixSize(
+		(ukfmo_matrix_s*)&pData_s->x_posteriori_s.mat_s,
+		sizeof(pData_s->x_posteriori_s.memForMatrix));
 	initMatrixPointers_s.pMatrix_s_a[UKFSIF_INIT_x_posteriori] =
 		__VGCS_CheckMatrixStructValidation(
 			&pData_s->x_posteriori_s.mat_s);
@@ -166,6 +181,9 @@ VGSS_Init_MatrixStructs(
 		VGCS_LEN_SIGMA_COL,
 		pData_s->chiSigmaMat_s.memForMatrix[0u]
 	);
+	__UKFMO_CheckMatrixSize(
+		(ukfmo_matrix_s*)&pData_s->chiSigmaMat_s.mat_s,
+		sizeof(pData_s->chiSigmaMat_s.memForMatrix));
 	initMatrixPointers_s.pMatrix_s_a[UKFSIF_INIT_chi_predict] =
 		__VGCS_CheckMatrixStructValidation(
 			&pData_s->chiSigmaMat_s.mat_s);
@@ -177,6 +195,9 @@ VGSS_Init_MatrixStructs(
 		VGCS_LEN_SIGMA_COL,
 		pData_s->chiSigmaPostMat_s.memForMatrix[0u]
 	);
+	__UKFMO_CheckMatrixSize(
+		(ukfmo_matrix_s*)	&pData_s->chiSigmaPostMat_s.mat_s,
+		sizeof				(pData_s->chiSigmaPostMat_s.memForMatrix));
 	initMatrixPointers_s.pMatrix_s_a[UKFSIF_INIT_chi_apriori] =
 		__VGCS_CheckMatrixStructValidation(
 			&pData_s->chiSigmaPostMat_s.mat_s);
@@ -188,6 +209,9 @@ VGSS_Init_MatrixStructs(
 		VGCS_LEN_MATRIX_COL,
 		pData_s->sqrtP_apriori_s.memForMatrix[0u]
 	);
+	__UKFMO_CheckMatrixSize(
+		(ukfmo_matrix_s*)&pData_s->sqrtP_apriori_s.mat_s,
+		sizeof(pData_s->sqrtP_apriori_s.memForMatrix));
 	initMatrixPointers_s.pMatrix_s_a[UKFSIF_INIT_P_sqrt] =
 		__VGCS_CheckMatrixStructValidation(
 			&pData_s->sqrtP_apriori_s.mat_s);
@@ -198,6 +222,9 @@ VGSS_Init_MatrixStructs(
 		1u,
 		pData_s->muMean_s.memForMatrix[0u]
 	);
+	__UKFMO_CheckMatrixSize(
+		(ukfmo_matrix_s*)&pData_s->muMean_s.mat_s,
+		sizeof(pData_s->muMean_s.memForMatrix));
 	initMatrixPointers_s.pMatrix_s_a[UKFSIF_INIT_muMean] =
 		__VGCS_CheckMatrixStructValidation(
 			&pData_s->muMean_s.mat_s);
@@ -208,6 +235,9 @@ VGSS_Init_MatrixStructs(
 		1u,
 		pData_s->muCovar_s.memForMatrix[0u]
 	);
+	__UKFMO_CheckMatrixSize(
+		(ukfmo_matrix_s*)&pData_s->muCovar_s.mat_s,
+		sizeof(pData_s->muCovar_s.memForMatrix));
 	initMatrixPointers_s.pMatrix_s_a[UKFSIF_INIT_muCovar] =
 		__VGCS_CheckMatrixStructValidation(
 			&pData_s->muCovar_s.mat_s);
@@ -218,6 +248,9 @@ VGSS_Init_MatrixStructs(
 		1u,
 		pData_s->chi_apriory_minus_x_apriory_s.memForMatrix[0u]
 	);
+	__UKFMO_CheckMatrixSize(
+		(ukfmo_matrix_s*)&pData_s->chi_apriory_minus_x_apriory_s.mat_s,
+		sizeof (pData_s->chi_apriory_minus_x_apriory_s.memForMatrix));
 	initMatrixPointers_s.pMatrix_s_a[UKFSIF_INIT_chi_priory_MINUS_x_priory] =
 		__VGCS_CheckMatrixStructValidation(
 			&pData_s->chi_apriory_minus_x_apriory_s.mat_s);
@@ -228,16 +261,22 @@ VGSS_Init_MatrixStructs(
 		VGCS_LEN_STATE,
 		pData_s->chi_apriory_minus_x_apriory_Transpose_s.memForMatrix[0u]
 	);
+	__UKFMO_CheckMatrixSize(
+		(ukfmo_matrix_s*) &pData_s->chi_apriory_minus_x_apriory_Transpose_s.mat_s,
+		sizeof(pData_s->chi_apriory_minus_x_apriory_Transpose_s.memForMatrix));
 	initMatrixPointers_s.pMatrix_s_a[UKFSIF_INIT_chi_priory_MINUS_x_priory_TRANSPOSE] =
 		__VGCS_CheckMatrixStructValidation(
 			&pData_s->chi_apriory_minus_x_apriory_Transpose_s.mat_s);
 
 	UKFMO_MatrixInit(
 		&pData_s->resultOfMult2Matrix_s.mat_s,
-		1u,
+		VGCS_LEN_STATE,
 		VGCS_LEN_STATE,
 		pData_s->resultOfMult2Matrix_s.memForMatrix[0u]
 	);
+	__UKFMO_CheckMatrixSize(
+		&pData_s->resultOfMult2Matrix_s.mat_s,
+		sizeof(pData_s->resultOfMult2Matrix_s.memForMatrix));
 	initMatrixPointers_s.pMatrix_s_a[UKFSIF_INIT_result_of_mult_2_matrix] =
 		__VGCS_CheckMatrixStructValidation(
 			&pData_s->resultOfMult2Matrix_s.mat_s);
@@ -248,6 +287,9 @@ VGSS_Init_MatrixStructs(
 		VGCS_LEN_MATRIX_COL,
 		pData_s->P_apriori_s.memForMatrix[0u]
 	);
+	__UKFMO_CheckMatrixSize(
+		&pData_s->P_apriori_s.mat_s,
+		sizeof(pData_s->P_apriori_s.memForMatrix));
 	initMatrixPointers_s.pMatrix_s_a[UKFSIF_INIT_P_apriory] =
 		__VGCS_CheckMatrixStructValidation(
 			&pData_s->P_apriori_s.mat_s);
@@ -258,6 +300,9 @@ VGSS_Init_MatrixStructs(
 		VGCS_LEN_SIGMA_COL,
 		pData_s->psi_apriori_s.memForMatrix[0u]
 	);
+	__UKFMO_CheckMatrixSize(
+		&pData_s->psi_apriori_s.mat_s,
+		sizeof(pData_s->psi_apriori_s.memForMatrix));
 	initMatrixPointers_s.pMatrix_s_a[UKFSIF_INIT_psi_apriori] =
 		__VGCS_CheckMatrixStructValidation(
 			&pData_s->psi_apriori_s.mat_s);
@@ -268,6 +313,9 @@ VGSS_Init_MatrixStructs(
 		1u,
 		pData_s->y_apriori_s.memForMatrix[0u]
 	);
+	__UKFMO_CheckMatrixSize(
+		&pData_s->y_apriori_s.mat_s,
+		sizeof(pData_s->y_apriori_s.memForMatrix));
 	initMatrixPointers_s.pMatrix_s_a[UKFSIF_INIT_y_apriori] =
 		__VGCS_CheckMatrixStructValidation(
 			&pData_s->y_apriori_s.mat_s);
@@ -278,6 +326,9 @@ VGSS_Init_MatrixStructs(
 		VGCS_LEN_MATRIX_COL,
 		pData_s->Pyy_s.memForMatrix[0u]
 	);
+	__UKFMO_CheckMatrixSize(
+		&pData_s->Pyy_s.mat_s,
+		sizeof(pData_s->Pyy_s.memForMatrix));
 	initMatrixPointers_s.pMatrix_s_a[UKFSIF_INIT_Pyy] =
 		__VGCS_CheckMatrixStructValidation(
 			&pData_s->Pyy_s.mat_s);
@@ -288,6 +339,9 @@ VGSS_Init_MatrixStructs(
 		1u,
 		pData_s->psi_priory_MINUS_y_priory.memForMatrix[0u]
 	);
+	__UKFMO_CheckMatrixSize(
+		&pData_s->psi_priory_MINUS_y_priory.mat_s,
+		sizeof(pData_s->psi_priory_MINUS_y_priory.memForMatrix));
 	initMatrixPointers_s.pMatrix_s_a[UKFSIF_INIT_STEP2_psi_priory_MINUS_y_priory] =
 		__VGCS_CheckMatrixStructValidation(
 			&pData_s->psi_priory_MINUS_y_priory.mat_s);
@@ -298,6 +352,9 @@ VGSS_Init_MatrixStructs(
 		VGCS_LEN_MATRIX_COL,
 		pData_s->Pxy_s.memForMatrix[0u]
 	);
+	__UKFMO_CheckMatrixSize(
+		&pData_s->Pxy_s.mat_s,
+		sizeof(pData_s->Pxy_s.memForMatrix));
 	initMatrixPointers_s.pMatrix_s_a[UKFSIF_INIT_Pxy] =
 		__VGCS_CheckMatrixStructValidation(
 			&pData_s->Pxy_s.mat_s);
@@ -307,6 +364,9 @@ VGSS_Init_MatrixStructs(
 		VGCS_LEN_MATRIX_ROW,
 		VGCS_LEN_MATRIX_COL,
 		pData_s->PyyInv_s.memForMatrix[0u]);
+	__UKFMO_CheckMatrixSize(
+		&pData_s->PyyInv_s.mat_s,
+		sizeof(pData_s->PyyInv_s.memForMatrix));
 	initMatrixPointers_s.pMatrix_s_a[UKFSIF_INIT_Pyy_INV] =
 		__VGCS_CheckMatrixStructValidation(
 			&pData_s->PyyInv_s.mat_s);
@@ -316,6 +376,9 @@ VGSS_Init_MatrixStructs(
 		VGCS_LEN_MATRIX_ROW,
 		VGCS_LEN_MATRIX_COL,
 		pData_s->K_s.memForMatrix[0u]);
+	__UKFMO_CheckMatrixSize(
+		&pData_s->K_s.mat_s,
+		sizeof(pData_s->K_s.memForMatrix));
 	initMatrixPointers_s.pMatrix_s_a[UKFSIF_INIT_K] =
 		__VGCS_CheckMatrixStructValidation(
 			&pData_s->K_s.mat_s);
@@ -325,6 +388,9 @@ VGSS_Init_MatrixStructs(
 		VGCS_LEN_MATRIX_ROW,
 		1u,
 		pData_s->y_posteriori_s.memForMatrix[0u]);
+	__UKFMO_CheckMatrixSize(
+		&pData_s->y_posteriori_s.mat_s,
+		sizeof(pData_s->y_posteriori_s.memForMatrix));
 	initMatrixPointers_s.pMatrix_s_a[UKFSIF_INIT_meas] =
 		__VGCS_CheckMatrixStructValidation(
 			&pData_s->y_posteriori_s.mat_s);
@@ -334,6 +400,9 @@ VGSS_Init_MatrixStructs(
 		VGCS_LEN_MATRIX_ROW,
 		1u,
 		pData_s->innovation_s.memForMatrix[0u]);
+	__UKFMO_CheckMatrixSize(
+		&pData_s->innovation_s.mat_s,
+		sizeof(pData_s->innovation_s.memForMatrix));
 	initMatrixPointers_s.pMatrix_s_a[UKFSIF_INIT_innovation] =
 		__VGCS_CheckMatrixStructValidation(
 			&pData_s->innovation_s.mat_s);
@@ -343,6 +412,9 @@ VGSS_Init_MatrixStructs(
 		VGCS_LEN_MATRIX_ROW,
 		VGCS_LEN_MATRIX_COL,
 		pData_s->P_predict_s.memForMatrix[0u]);
+	__UKFMO_CheckMatrixSize(
+		&pData_s->P_predict_s.mat_s,
+		sizeof(pData_s->P_predict_s.memForMatrix));
 	initMatrixPointers_s.pMatrix_s_a[UKFSIF_INIT_P] =
 		__VGCS_CheckMatrixStructValidation(
 			&pData_s->P_predict_s.mat_s);
@@ -352,6 +424,9 @@ VGSS_Init_MatrixStructs(
 		VGCS_LEN_MATRIX_ROW,
 		VGCS_LEN_MATRIX_COL,
 		pData_s->K_Transpose_s.memForMatrix[0u]);
+	__UKFMO_CheckMatrixSize(
+		&pData_s->K_Transpose_s.mat_s,
+		sizeof(pData_s->K_Transpose_s.memForMatrix));
 	initMatrixPointers_s.pMatrix_s_a[UKFSIF_INIT_K_TRANSPOSE] =
 		__VGCS_CheckMatrixStructValidation(
 			&pData_s->K_Transpose_s.mat_s);
@@ -365,7 +440,7 @@ VGSS_Init_MatrixStructs(
 		(uint16_t) VGCS_LEN_STATE);
 }
 
-void __VGCS_FNC_ONCE_MEMORY_LOCATION
+static void __VGCS_FNC_ONCE_MEMORY_LOCATION
 VGCS_Init_NoiseMatrix(
 	ukfmo_matrix_s 	*pNoiseMat,
 	__VGCS_FPT__ 	*pNoiseMatDiag)
@@ -376,13 +451,14 @@ VGCS_Init_NoiseMatrix(
 	size_t i;
 	for (i = 0u; i < pNoiseMat->numCols; i++)
 	{
-		if (pNoiseMatDiag[i] == (__VGCS_FPT__) 0.0)
+		if (*pNoiseMatDiag == ((__VGCS_FPT__) 0.0))
 		{
 			/* Если попоали сюда, значит диагональ матрицы шума не
 			 * инициализирована */
-			while(1);
+			while (1);
 		}
-		pNoiseMat->pData[i * i] = *pNoiseMatDiag++;
+		pNoiseMat->pData[__UKFMO_GetIndexInOneFromTwoDim(pNoiseMat, i, i)] =
+			*pNoiseMatDiag++;
 	}
 }
 

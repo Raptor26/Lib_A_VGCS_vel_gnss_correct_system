@@ -469,6 +469,8 @@ VGCS_UpdateAccInWorldFrame(
 	pData_s->meas_s.accWorldFrame_s.new_a[0u] = *pAcc++;
 	pData_s->meas_s.accWorldFrame_s.new_a[1u] = *pAcc++;
 	pData_s->meas_s.accWorldFrame_s.new_a[2u] = *pAcc;
+
+	__VGCS_SetFlagAccDataUpdate();
 }
 
 __VGCS_ALWAYS_INLINE void
