@@ -182,6 +182,12 @@ typedef struct
 typedef struct
 {
 	ukfmo_matrix_s mat_s;
+	__VGCS_FPT__ memForMatrix[1u][VGCS_LEN_STATE];
+} vgcs_matrix_1_6_s;
+
+typedef struct
+{
+	ukfmo_matrix_s mat_s;
 	__VGCS_FPT__ memForMatrix[VGCS_LEN_SIGMA_COL][1u];
 } vgcs_matrix_13_1_s;
 
@@ -262,6 +268,8 @@ typedef struct
 
 	/*------------------------------------------------------------------------*//**
 	 * @brief Вектор пространства состояний
+	 *
+	 * @warning Удалить! @see "x_predict_temp_s"
 	 */
 	vgcs_matrix_6x6_s 	stateMat_s;
 
@@ -295,6 +303,10 @@ typedef struct
 	vgcs_matrix_6_1_s x_apriori_s;
 
 	vgcs_matrix_6_1_s x_posteriori_s;
+
+	vgcs_matrix_6x6_s x_predict_temp_s;
+
+	vgcs_matrix_1_6_s x_predict_temp_ones_s;
 
 	vgcs_matrix_13_1_s muMean_s;
 	vgcs_matrix_13_1_s muCovar_s;
@@ -348,6 +360,8 @@ typedef struct
 
 	__VGCS_FPT__ Q_mat_a[VGCS_LEN_STATE];
 	__VGCS_FPT__ R_mat_a[VGCS_LEN_STATE];
+
+	__VGCS_FPT__ state_a[VGCS_LEN_STATE];
 } vgcs_data_init_s;
 
 #define __VGCS_GET_ADDR_MATRIX_STRUCT_R_k(BASEADDR)	\

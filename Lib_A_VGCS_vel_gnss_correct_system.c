@@ -89,12 +89,13 @@ VGCS_InitStruct(
 	/* @TODO Сброс периода интегрирования */
 	pUKF_s->dt = (__VGCS_FPT__) 0.0;
 
-	/* Сброс матрицы шумов в нуль */
+	/* Сброс в нуль: */
 	size_t i;
 	for (i = 0u; i < VGCS_LEN_STATE; i++)
 	{
 		pUKF_s->Q_mat_a[i] = (__VGCS_FPT__) 0.0;
 		pUKF_s->R_mat_a[i] = (__VGCS_FPT__) 0.0;
+		pUKF_s->state_a[i] = (__VGCS_FPT__) 0.0;
 	}
 }
 
@@ -431,6 +432,30 @@ VGSS_Init_MatrixStructs(
 		__VGCS_CheckMatrixStructValidation(
 			&pData_s->K_Transpose_s.mat_s);
 
+	UKFMO_MatrixInit(
+		&pData_s->x_predict_temp_s.mat_s,
+		VGCS_LEN_MATRIX_ROW,
+		VGCS_LEN_MATRIX_COL,
+		pData_s->x_predict_temp_s.memForMatrix[0u]);
+	__UKFMO_CheckMatrixSize(
+		&pData_s->x_predict_temp_s.mat_s,
+		sizeof(pData_s->x_predict_temp_s.memForMatrix));
+	initMatrixPointers_s.pMatrix_s_a[UKFSIF_INIT_x_LxL_TEMP] =
+		__VGCS_CheckMatrixStructValidation(
+			&pData_s->x_predict_temp_s.mat_s);
+
+	UKFMO_MatrixInit(
+		&pData_s->x_predict_temp_ones_s.mat_s,
+		1u,
+		VGCS_LEN_MATRIX_COL,
+		pData_s->x_predict_temp_ones_s.memForMatrix[0u]);
+	__UKFMO_CheckMatrixSize(
+		&pData_s->x_predict_temp_ones_s.mat_s,
+		sizeof(pData_s->x_predict_temp_ones_s.memForMatrix));
+	initMatrixPointers_s.pMatrix_s_a[UKFSIF_INIT_x_1xL_ones_TEMP] =
+		__VGCS_CheckMatrixStructValidation(
+			&pData_s->x_predict_temp_ones_s.mat_s);
+
 
 	/* Копирование указателей на структуры матриц (Эта функция должна быть
 	 * вызвана в конце) */
@@ -531,6 +556,18 @@ VGSS_Init_All(
 	/* Заполнение матрицы P */
 	UKFMO_MatrixIdentity(
 		&pData_s->P_predict_s.mat_s);
+
+	/* Инициализация вектора пространства состояний */
+	size_t i;
+	for (i = 0u; i < __UKFMO_GetRowNumb(&pData_s->x_posteriori_s.mat_s); i++)
+	{
+		/* Получить индекс ячейки массива */
+		size_t idx =
+			__UKFMO_GetIndexInOneFromTwoDim(&pData_s->x_posteriori_s.mat_s, i, 0u);
+		pData_s->x_posteriori_s.mat_s.pData[idx]
+			= pInit_s->state_a[i];
+	}
+
 }
 
 /*-------------------------------------------------------------------------*//**
