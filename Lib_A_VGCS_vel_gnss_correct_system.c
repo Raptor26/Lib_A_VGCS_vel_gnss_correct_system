@@ -336,8 +336,8 @@ VGSS_Init_MatrixStructs(
 
 	UKFMO_MatrixInit(
 		&pData_s->psi_priory_MINUS_y_priory.mat_s,
-		VGCS_LEN_STATE,
 		1u,
+		VGCS_LEN_STATE,
 		pData_s->psi_priory_MINUS_y_priory.memForMatrix[0u]
 	);
 	__UKFMO_CheckMatrixSize(
@@ -392,7 +392,7 @@ VGSS_Init_MatrixStructs(
 	__UKFMO_CheckMatrixSize(
 		&pData_s->y_posteriori_s.mat_s,
 		sizeof(pData_s->y_posteriori_s.memForMatrix));
-	initMatrixPointers_s.pMatrix_s_a[UKFSIF_INIT_meas] =
+	initMatrixPointers_s.pMatrix_s_a[UKFSIF_INIT_y_posteriori] =
 		__VGCS_CheckMatrixStructValidation(
 			&pData_s->y_posteriori_s.mat_s);
 
@@ -597,7 +597,6 @@ VGCS_UKF_UpdateVectState(
 		/* Сброс флага */
 		__VGCS_ReSetFlagAccDataUpdate();
 
-
 		/* Calculate error covariance matrix square root */
 		#if defined (__UKFMO_CHEKING_ENABLE__)
 		matOperationStatus_e =
@@ -641,7 +640,6 @@ VGCS_UKF_UpdateVectState(
 	{
 		/* Сброс флага */
 		__VGCS_ReSetFlagGNSSDataUpdate();
-
 
 		/* Propagate each sigma-point through observation */
 		#if defined (__UKFMO_CHEKING_ENABLE__)
@@ -734,6 +732,7 @@ VGCS_Step1_CalculateErrorCovarianceMatrixSquareRoot(
 		UKFMO_GetCholeskyLow(
 			__VGCS_CheckMatrixStructValidation(
 				&pData_s->sqrtP_apriori_s.mat_s));
+	__UKFMO_CheckMatrixPosDefine(matOperationStatus_e);
 
 	#if defined (__UKFMO_CHEKING_ENABLE__)
 	return (matOperationStatus_e);
@@ -827,14 +826,26 @@ VGCS_Step3_PropagateEachSigmaPointThroughObservation(
 	ukfmo_fnc_status_e matOperationStatus_e;
 	#endif
 
-	/* Т.к. матрица psi_k|k-1 полностью соответствует матрице chi_k|k-1, то
-	 * выполним копирование матрицы без преобразования */
+	/* Т.к. матрица psi_k|k-1  соответствует матрице chi_k|k-1 с 0-й по 2-ю ячейку, то
+	 * выполним копирование матрицы без преобразования и запишем нули в 3-ю - 5-ю ячейки */
+
+	/* @TODO меньше тактов будет затрачено на эту операцию если копировать
+	 * только те элементы, которые необходимо, а остальные не трогать */
 	#if defined (__UKFMO_CHEKING_ENABLE__)
 	matOperationStatus_e =
 	#endif
 		UKFMO_CopyMatrix(
 			__VGCS_CheckMatrixStructValidation(&pData_s->psi_apriori_s.mat_s),
 			__VGCS_CheckMatrixStructValidation(&pData_s->chiSigmaMat_s.mat_s));
+
+	size_t col;
+	for (col = 0u; col < pData_s->psi_apriori_s.mat_s.numCols; col++)
+	{
+		pData_s->psi_apriori_s.memForMatrix[3u][col] = (__VGCS_FPT__) 0.0;
+		pData_s->psi_apriori_s.memForMatrix[4u][col] = (__VGCS_FPT__) 0.0;
+		pData_s->psi_apriori_s.memForMatrix[5u][col] = (__VGCS_FPT__) 0.0;
+	}
+
 
 	#if defined (__UKFMO_CHEKING_ENABLE__)
 	return (matOperationStatus_e);

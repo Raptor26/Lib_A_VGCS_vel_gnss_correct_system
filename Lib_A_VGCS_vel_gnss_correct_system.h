@@ -333,7 +333,7 @@ typedef struct
 
 	vgcs_matrix_6x6_s K_Transpose_s;
 
-	vgcs_matrix_6_1_s psi_priory_MINUS_y_priory;
+	vgcs_matrix_1_6_s psi_priory_MINUS_y_priory;
 
 	vgcs_matrix_6_1_s y_posteriori_s;
 
