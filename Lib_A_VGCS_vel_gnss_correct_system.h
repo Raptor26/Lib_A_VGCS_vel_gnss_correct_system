@@ -447,6 +447,18 @@ typedef struct
 
 
 /*#### |Begin| --> Секция - "Прототипы глобальных функций" ###################*/
+
+/*------------------------------------------------------------------------*//**
+ * @author    Mickle Isaev
+ * @date      09-сен-2019
+ *
+ * @brief    Макрос обновляет величину периода интегрирования
+ *
+ * @param    __pData_s__  Указатель на структуру данных UKF
+ * @param    __dt__       Новое значение периода интегрирования
+ *
+ * @return    None
+ */
 #define __VGCS_UpdateDt(__pData_s__, __dt__) ((__pData_s__)->meas_s.dt = (__dt__))
 
 #define __VGCS_SetFlagAccDataUpdate() 		(pData_s->meas_s.accWorldFrame_s.isNewData_flag 	= 1u)
@@ -475,6 +487,20 @@ extern vgcs_fnc_status_e __VGCS_FNC_LOOP_MEMORY_LOCATION
 VGCS_UKF_UpdateVectState(
 	vgcs_data_s *pData_s);
 
+/*-------------------------------------------------------------------------*//**
+ * @author    Mickle Isaev
+ * @date      09-сен-2019
+ *
+ * @brief    Функция записывает новые измерения акселерометра в нормальной 
+ *           Земной СК в структуру данных UKF
+ *
+ * @param[out] 	*pData_s: 	Указатель на структуру данных, содержащую
+ * 							необходимые для работы UKF данные
+ * @param[in]  	*pAcc:      Указатель на область памяти, в которой содержаться 
+ * 							измерения акселерометра в нормальной земной СК
+ * 							
+ * @return  None
+ */
 __VGCS_ALWAYS_INLINE void
 VGCS_UpdateAccInWorldFrame(
 	vgcs_data_s 		*pData_s,
@@ -487,6 +513,20 @@ VGCS_UpdateAccInWorldFrame(
 	__VGCS_SetFlagAccDataUpdate();
 }
 
+/*-------------------------------------------------------------------------*//**
+ * @author    Mickle Isaev
+ * @date      09-сен-2019
+ *
+ * @brief    Функция записывает новые измерения вектора скорости, полученные 
+ *           от GNSS модуля в нормальной Земной СК в структуру данных UKF
+ *
+ * @param[out] 	*pData_s: 	Указатель на структуру данных, содержащую
+ * 							необходимые для работы UKF данные
+ * @param[in]  	*pAcc:      Указатель на область памяти, в которой содержаться 
+ * 							измерения вектора скорости в нормальной земной СК
+ * 							
+ * @return  None
+ */
 __VGCS_ALWAYS_INLINE void
 VGCS_UpdateSpeedByGNSS(
 	vgcs_data_s 	*pData_s,
@@ -541,17 +581,6 @@ __VGCS_CheckMatrixStructValidation(
 }
 #else
 
-/*-------------------------------------------------------------------------*//**
- * @author    Mickle Isaev
- * @date      22-авг-2019
- *
- * @brief    Макрос проверяет валидность структуры матрицы, если матрица
- *           не валидна, то макрос зацикливает программу
- *
- * @param[in]	x: 	Указатель на структуру матрицы
- *
- * @return   None
- */
 #define __VGCS_CheckMatrixStructValidation(x) 	(x)
 #endif
 

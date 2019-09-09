@@ -77,6 +77,18 @@ VGCS_Step4_UpdateErrorCovariance(
 
 
 /*#### |Begin| --> Секция - "Описание глобальных функций" ####################*/
+
+/*-------------------------------------------------------------------------*//**
+ * @author    Mickle Isaev
+ * @date      09-сен-2019
+ *
+ * @brief    Функция выполняет сброс полей структуры инициализации в значения
+ *           по умолчанию
+ *
+ * @param[in]  *pUKF_s: Указатель на структуру инициализации
+ *
+ * @return  None
+ */
 void __VGCS_FNC_ONCE_MEMORY_LOCATION
 VGCS_InitStruct(
 	vgcs_data_init_s *pUKF_s)
@@ -99,6 +111,16 @@ VGCS_InitStruct(
 	}
 }
 
+/*-------------------------------------------------------------------------*//**
+ * @author    Mickle Isaev
+ * @date      09-сен-2019
+ *
+ * @brief    Инициализация указателей на области памяти, в которых
+ *           содержаться матрицы
+ *
+ * @param[out] 	*pData_s:              Данные с
+ * @param[in]  	*pMatrixPointers_s:    Матричные указатели s
+ */
 void __VGCS_FNC_ONCE_MEMORY_LOCATION
 VGSS_Init_MatrixStructs(
 	vgcs_data_s 		*pData_s,
@@ -708,6 +730,18 @@ VGCS_UKF_UpdateVectState(
 
 /*#### |Begin| --> Секция - "Описание локальных функций" #####################*/
 
+/*-------------------------------------------------------------------------*//**
+ * @author    Mickle Isaev
+ * @date      09-сен-2019
+ *
+ * @brief    Функция выполняет нижнее разложение Холецкого матрицы ковариации,
+ *           полученной на предыдущей итерации
+ *
+ * @param[in,out] 	*pData_s: 	Указатель на структуру данных, содержащую
+ * 								необходимые для работы UKF данные
+ *
+ * @return  Статус матричных операций, которые используются на данном шаге
+ */
 static vgcs_fnc_status_e __VGCS_FNC_LOOP_MEMORY_LOCATION
 VGCS_Step1_CalculateErrorCovarianceMatrixSquareRoot(
 	vgcs_data_s *pData_s)
@@ -716,8 +750,8 @@ VGCS_Step1_CalculateErrorCovarianceMatrixSquareRoot(
 	ukfmo_fnc_status_e matOperationStatus_e;
 	#endif
 
-	/* Копирование матрицы P в матрицу SQRT_P */
 	#if defined (__UKFMO_CHEKING_ENABLE__)
+	/* Копирование матрицы P в матрицу SQRT_P */
 	matOperationStatus_e =
 	#endif
 		UKFMO_CopyMatrix(
@@ -727,6 +761,7 @@ VGCS_Step1_CalculateErrorCovarianceMatrixSquareRoot(
 				&pData_s->P_predict_s.mat_s));
 
 	#if defined (__UKFMO_CHEKING_ENABLE__)
+	/* Нижнее разложение Холецкого */
 	matOperationStatus_e =
 	#endif
 		UKFMO_GetCholeskyLow(
@@ -741,6 +776,17 @@ VGCS_Step1_CalculateErrorCovarianceMatrixSquareRoot(
 	#endif
 }
 
+/*-------------------------------------------------------------------------*//**
+ * @author    Mickle Isaev
+ * @date      09-сен-2019
+ *
+ * @brief    Функция выполняет генерацию Сигма-точек
+ *
+ * @param[in,out] 	*pData_s: 	Указатель на структуру данных, содержащую
+ * 								необходимые для работы UKF данные
+ *
+ * @return  Статус матричных операций, которые используются на данном шаге
+ */
 static vgcs_fnc_status_e __VGCS_FNC_LOOP_MEMORY_LOCATION
 VGCS_Step1_GeterateTheSigmaPoints(
 	vgcs_data_s *pData_s)
@@ -753,6 +799,18 @@ VGCS_Step1_GeterateTheSigmaPoints(
 	return (UKFMO_OK);
 }
 
+/*-------------------------------------------------------------------------*//**
+ * @author    Mickle Isaev
+ * @date      09-сен-2019
+ *
+ * @brief    Функция реализует шаг предсказания на основе матрицы Сигма-точек
+ *           "chi_k-1" и измеренных линейных ускорений в нормальной земной СК
+ *
+ * @param[in,out] 	*pData_s: 	Указатель на структуру данных, содержащую
+ * 								необходимые для работы UKF данные
+ *
+ * @return  Статус матричных операций, которые используются на данном шаге
+ */
 static vgcs_fnc_status_e __VGCS_FNC_LOOP_MEMORY_LOCATION
 VGCS_Step2_ProragateEachSigmaPointsThroughPrediction(
 	vgcs_data_s *pData_s)
@@ -798,6 +856,18 @@ VGCS_Step2_ProragateEachSigmaPointsThroughPrediction(
 	return (UKFMO_OK);
 }
 
+/*-------------------------------------------------------------------------*//**
+ * @author    Mickle Isaev
+ * @date      09-сен-2019
+ *
+ * @brief    Функция выполняет усреднение матрицы Сигма-точек "chi_k|k-1" с помощью
+ *           вектора весовых коэффициентов
+ *
+ * @param[in,out] 	*pData_s: 	Указатель на структуру данных, содержащую
+ * 								необходимые для работы UKF данные
+ *
+ * @return  Статус матричных операций, которые используются на данном шаге
+ */
 static vgcs_fnc_status_e __VGCS_FNC_LOOP_MEMORY_LOCATION
 VGCS_Step2_CalculateMeanOfPredictedState(
 	vgcs_data_s *pData_s)
@@ -808,6 +878,17 @@ VGCS_Step2_CalculateMeanOfPredictedState(
 	return (UKFMO_OK);
 }
 
+/*-------------------------------------------------------------------------*//**
+ * @author    Mickle Isaev
+ * @date      09-сен-2019
+ *
+ * @brief    Функция рассчитывает ковариацию предсказанного состояния
+ *
+ * @param[in,out] 	*pData_s: 	Указатель на структуру данных, содержащую
+ * 								необходимые для работы UKF данные
+ *
+ * @return  Статус матричных операций, которые используются на данном шаге
+ */
 static vgcs_fnc_status_e __VGCS_FNC_LOOP_MEMORY_LOCATION
 VGCS_Step2_CalculateCovarianceOfPredictedState(
 	vgcs_data_s *pData_s)
@@ -818,6 +899,18 @@ VGCS_Step2_CalculateCovarianceOfPredictedState(
 	return (UKFMO_OK);
 }
 
+/*-------------------------------------------------------------------------*//**
+ * @author    Mickle Isaev
+ * @date      09-сен-2019
+ *
+ * @brief    Функция выполняет предсказание вектора пространства состояний
+ *           на основе матрицы Сигма-точек "chi_k|k-1"
+ *
+ * @param[in,out] 	*pData_s: 	Указатель на структуру данных, содержащую
+ * 								необходимые для работы UKF данные
+ *
+ * @return  Статус матричных операций, которые используются на данном шаге
+ */
 static vgcs_fnc_status_e __VGCS_FNC_LOOP_MEMORY_LOCATION
 VGCS_Step3_PropagateEachSigmaPointThroughObservation(
 	vgcs_data_s *pData_s)
@@ -854,6 +947,18 @@ VGCS_Step3_PropagateEachSigmaPointThroughObservation(
 	#endif
 }
 
+/*-------------------------------------------------------------------------*//**
+ * @author    Mickle Isaev
+ * @date      09-сен-2019
+ *
+ * @brief    Функция вычисляет "среднее" от предсказанного значения вектора
+ *           измерений
+ *
+ * @param[in,out] 	*pData_s: 	Указатель на структуру данных, содержащую
+ * 								необходимые для работы UKF данные
+ *
+ * @return  Статус матричных операций, которые используются на данном шаге
+ */
 static vgcs_fnc_status_e __VGCS_FNC_LOOP_MEMORY_LOCATION
 VGCS_Step3_CalculateMeanOfPredictedOutput(
 	vgcs_data_s *pData_s)
@@ -864,6 +969,17 @@ VGCS_Step3_CalculateMeanOfPredictedOutput(
 	return (UKFMO_OK);
 }
 
+/*-------------------------------------------------------------------------*//**
+ * @author    Mickle Isaev
+ * @date      09-сен-2019
+ *
+ * @brief    Функция рассчитывает ковариацию предсказанного вектора измерений
+ *
+ * @param[in,out] 	*pData_s: 	Указатель на структуру данных, содержащую
+ * 								необходимые для работы UKF данные
+ *
+ * @return  Статус матричных операций, которые используются на данном шаге
+ */
 static vgcs_fnc_status_e __VGCS_FNC_LOOP_MEMORY_LOCATION
 VGCS_Step3_CalculateCovarianceOfPredictedOutput(
 	vgcs_data_s *pData_s)
@@ -874,6 +990,18 @@ VGCS_Step3_CalculateCovarianceOfPredictedOutput(
 	return (UKFMO_OK);
 }
 
+/*-------------------------------------------------------------------------*//**
+ * @author    Mickle Isaev
+ * @date      09-сен-2019
+ *
+ * @brief    Функция вычисляет матрицу кросс-ковариации от "предсказания"
+ *           и "измерения"
+ *
+ * @param[in,out] 	*pData_s: 	Указатель на структуру данных, содержащую
+ * 								необходимые для работы UKF данные
+ *
+ * @return  Статус матричных операций, которые используются на данном шаге
+ */
 static vgcs_fnc_status_e __VGCS_FNC_LOOP_MEMORY_LOCATION
 VGCS_Step3_CalculateCrossCovarOfStateAndOut(
 	vgcs_data_s *pData_s)
@@ -884,6 +1012,17 @@ VGCS_Step3_CalculateCrossCovarOfStateAndOut(
 	return (UKFMO_OK);
 }
 
+/*-------------------------------------------------------------------------*//**
+ * @author    Mickle Isaev
+ * @date      09-сен-2019
+ *
+ * @brief    Функция вычисляет матрицу коэффициентов усиления Калмана
+ *
+ * @param[in,out] 	*pData_s: 	Указатель на структуру данных, содержащую
+ * 								необходимые для работы UKF данные
+ *
+ * @return  Статус матричных операций, которые используются на данном шаге
+ */
 static vgcs_fnc_status_e __VGCS_FNC_LOOP_MEMORY_LOCATION
 VGCS_Step4_CalcKalmanGain(
 	vgcs_data_s *pData_s)
@@ -894,6 +1033,17 @@ VGCS_Step4_CalcKalmanGain(
 	return (UKFMO_OK);
 }
 
+/*-------------------------------------------------------------------------*//**
+ * @author    Mickle Isaev
+ * @date      09-сен-2019
+ *
+ * @brief    Функция выполняет шаг коррекции вектора пространства состояний
+ *
+ * @param[in,out] 	*pData_s: 	Указатель на структуру данных, содержащую
+ * 								необходимые для работы UKF данные
+ *
+ * @return  Статус матричных операций, которые используются на данном шаге
+ */
 static vgcs_fnc_status_e __VGCS_FNC_LOOP_MEMORY_LOCATION
 VGCS_Step4_UpdateStateEstimate(
 	vgcs_data_s *pData_s)
@@ -904,6 +1054,17 @@ VGCS_Step4_UpdateStateEstimate(
 	return (UKFMO_OK);
 }
 
+/*-------------------------------------------------------------------------*//**
+ * @author    Mickle Isaev
+ * @date      09-сен-2019
+ *
+ * @brief    Функция обновляет матрицу ковариации
+ *
+ * @param[in,out] 	*pData_s: 	Указатель на структуру данных, содержащую
+ * 								необходимые для работы UKF данные
+ *
+ * @return  Статус матричных операций, которые используются на данном шаге
+ */
 static vgcs_fnc_status_e __VGCS_FNC_LOOP_MEMORY_LOCATION
 VGCS_Step4_UpdateErrorCovariance(
 	vgcs_data_s *pData_s)
