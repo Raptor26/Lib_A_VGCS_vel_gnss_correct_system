@@ -356,6 +356,7 @@ typedef struct
 	 */
 	ukfsif_scaling_param_s 	scalParams_s;
 
+
 	__VGCS_FPT__ dt;
 
 	__VGCS_FPT__ Q_mat_a[VGCS_LEN_STATE];

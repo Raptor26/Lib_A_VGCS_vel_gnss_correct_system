@@ -35,7 +35,7 @@ VGCS_Step1_CalculateErrorCovarianceMatrixSquareRoot(
 	vgcs_data_s *pData_s);
 
 static vgcs_fnc_status_e __VGCS_FNC_LOOP_MEMORY_LOCATION
-VGCS_Step1_GeterateTheSigmaPoints(
+VGCS_Step1_GenerateTheSigmaPoints(
 	vgcs_data_s *pData_s);
 
 static vgcs_fnc_status_e __VGCS_FNC_LOOP_MEMORY_LOCATION
@@ -630,7 +630,7 @@ VGCS_UKF_UpdateVectState(
 		#if defined (__UKFMO_CHEKING_ENABLE__)
 		matOperationStatus_e =
 		#endif
-			VGCS_Step1_GeterateTheSigmaPoints(
+			VGCS_Step1_GenerateTheSigmaPoints(
 				pData_s);
 
 		/* Step 2 ################################################################ */
@@ -788,7 +788,7 @@ VGCS_Step1_CalculateErrorCovarianceMatrixSquareRoot(
  * @return  Статус матричных операций, которые используются на данном шаге
  */
 static vgcs_fnc_status_e __VGCS_FNC_LOOP_MEMORY_LOCATION
-VGCS_Step1_GeterateTheSigmaPoints(
+VGCS_Step1_GenerateTheSigmaPoints(
 	vgcs_data_s *pData_s)
 {
 	/* Calculate the sigma-points */
