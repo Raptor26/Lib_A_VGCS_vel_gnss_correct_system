@@ -357,17 +357,17 @@ VGSS_Init_MatrixStructs(
 			&pData_s->Pyy_s.mat_s);
 
 	UKFMO_MatrixInit(
-		&pData_s->psi_priory_MINUS_y_priory.mat_s,
+		&pData_s->psi_priory_MINUS_y_priory_TRANSPOSE.mat_s,
 		1u,
 		VGCS_LEN_STATE,
-		pData_s->psi_priory_MINUS_y_priory.memForMatrix[0u]
+		pData_s->psi_priory_MINUS_y_priory_TRANSPOSE.memForMatrix[0u]
 	);
 	__UKFMO_CheckMatrixSize(
-		&pData_s->psi_priory_MINUS_y_priory.mat_s,
-		sizeof(pData_s->psi_priory_MINUS_y_priory.memForMatrix));
-	initMatrixPointers_s.pMatrix_s_a[UKFSIF_INIT_STEP2_psi_priory_MINUS_y_priory] =
+		&pData_s->psi_priory_MINUS_y_priory_TRANSPOSE.mat_s,
+		sizeof(pData_s->psi_priory_MINUS_y_priory_TRANSPOSE.memForMatrix));
+	initMatrixPointers_s.pMatrix_s_a[UKFSIF_INIT_psi_priory_MINUS_y_priory_TRANSPOSE] =
 		__VGCS_CheckMatrixStructValidation(
-			&pData_s->psi_priory_MINUS_y_priory.mat_s);
+			&pData_s->psi_priory_MINUS_y_priory_TRANSPOSE.mat_s);
 
 	UKFMO_MatrixInit(
 		&pData_s->Pxy_s.mat_s,
