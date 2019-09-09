@@ -182,6 +182,12 @@ typedef struct
 typedef struct
 {
 	ukfmo_matrix_s mat_s;
+	__VGCS_FPT__ memForMatrix[1u][VGCS_LEN_STATE];
+} vgcs_matrix_1_6_s;
+
+typedef struct
+{
+	ukfmo_matrix_s mat_s;
 	__VGCS_FPT__ memForMatrix[VGCS_LEN_SIGMA_COL][1u];
 } vgcs_matrix_13_1_s;
 
@@ -262,6 +268,8 @@ typedef struct
 
 	/*------------------------------------------------------------------------*//**
 	 * @brief Вектор пространства состояний
+	 *
+	 * @warning Удалить! @see "x_predict_temp_s"
 	 */
 	vgcs_matrix_6x6_s 	stateMat_s;
 
@@ -296,6 +304,10 @@ typedef struct
 
 	vgcs_matrix_6_1_s x_posteriori_s;
 
+	vgcs_matrix_6x6_s x_predict_temp_s;
+
+	vgcs_matrix_1_6_s x_predict_temp_ones_s;
+
 	vgcs_matrix_13_1_s muMean_s;
 	vgcs_matrix_13_1_s muCovar_s;
 
@@ -321,7 +333,7 @@ typedef struct
 
 	vgcs_matrix_6x6_s K_Transpose_s;
 
-	vgcs_matrix_6_1_s psi_priory_MINUS_y_priory;
+	vgcs_matrix_1_6_s psi_priory_MINUS_y_priory;
 
 	vgcs_matrix_6_1_s y_posteriori_s;
 
@@ -344,10 +356,13 @@ typedef struct
 	 */
 	ukfsif_scaling_param_s 	scalParams_s;
 
+
 	__VGCS_FPT__ dt;
 
 	__VGCS_FPT__ Q_mat_a[VGCS_LEN_STATE];
 	__VGCS_FPT__ R_mat_a[VGCS_LEN_STATE];
+
+	__VGCS_FPT__ state_a[VGCS_LEN_STATE];
 } vgcs_data_init_s;
 
 #define __VGCS_GET_ADDR_MATRIX_STRUCT_R_k(BASEADDR)	\
@@ -433,6 +448,18 @@ typedef struct
 
 
 /*#### |Begin| --> Секция - "Прототипы глобальных функций" ###################*/
+
+/*------------------------------------------------------------------------*//**
+ * @author    Mickle Isaev
+ * @date      09-сен-2019
+ *
+ * @brief    Макрос обновляет величину периода интегрирования
+ *
+ * @param    __pData_s__  Указатель на структуру данных UKF
+ * @param    __dt__       Новое значение периода интегрирования
+ *
+ * @return    None
+ */
 #define __VGCS_UpdateDt(__pData_s__, __dt__) ((__pData_s__)->meas_s.dt = (__dt__))
 
 #define __VGCS_SetFlagAccDataUpdate() 		(pData_s->meas_s.accWorldFrame_s.isNewData_flag 	= 1u)
@@ -457,6 +484,24 @@ VGSS_Init_MatrixStructs(
 	vgcs_data_s 		*pData_s,
 	ukfsif_all_data_s 	*pMatrixPointers_s);
 
+extern vgcs_fnc_status_e __VGCS_FNC_LOOP_MEMORY_LOCATION
+VGCS_UKF_UpdateVectState(
+	vgcs_data_s *pData_s);
+
+/*-------------------------------------------------------------------------*//**
+ * @author    Mickle Isaev
+ * @date      09-сен-2019
+ *
+ * @brief    Функция записывает новые измерения акселерометра в нормальной 
+ *           Земной СК в структуру данных UKF
+ *
+ * @param[out] 	*pData_s: 	Указатель на структуру данных, содержащую
+ * 							необходимые для работы UKF данные
+ * @param[in]  	*pAcc:      Указатель на область памяти, в которой содержаться 
+ * 							измерения акселерометра в нормальной земной СК
+ * 							
+ * @return  None
+ */
 __VGCS_ALWAYS_INLINE void
 VGCS_UpdateAccInWorldFrame(
 	vgcs_data_s 		*pData_s,
@@ -465,8 +510,24 @@ VGCS_UpdateAccInWorldFrame(
 	pData_s->meas_s.accWorldFrame_s.new_a[0u] = *pAcc++;
 	pData_s->meas_s.accWorldFrame_s.new_a[1u] = *pAcc++;
 	pData_s->meas_s.accWorldFrame_s.new_a[2u] = *pAcc;
+
+	__VGCS_SetFlagAccDataUpdate();
 }
 
+/*-------------------------------------------------------------------------*//**
+ * @author    Mickle Isaev
+ * @date      09-сен-2019
+ *
+ * @brief    Функция записывает новые измерения вектора скорости, полученные 
+ *           от GNSS модуля в нормальной Земной СК в структуру данных UKF
+ *
+ * @param[out] 	*pData_s: 	Указатель на структуру данных, содержащую
+ * 							необходимые для работы UKF данные
+ * @param[in]  	*pAcc:      Указатель на область памяти, в которой содержаться 
+ * 							измерения вектора скорости в нормальной земной СК
+ * 							
+ * @return  None
+ */
 __VGCS_ALWAYS_INLINE void
 VGCS_UpdateSpeedByGNSS(
 	vgcs_data_s 	*pData_s,
@@ -521,17 +582,6 @@ __VGCS_CheckMatrixStructValidation(
 }
 #else
 
-/*-------------------------------------------------------------------------*//**
- * @author    Mickle Isaev
- * @date      22-авг-2019
- *
- * @brief    Макрос проверяет валидность структуры матрицы, если матрица
- *           не валидна, то макрос зацикливает программу
- *
- * @param[in]	x: 	Указатель на структуру матрицы
- *
- * @return   None
- */
 #define __VGCS_CheckMatrixStructValidation(x) 	(x)
 #endif
 
