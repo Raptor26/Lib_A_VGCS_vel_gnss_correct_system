@@ -118,8 +118,10 @@ VGCS_InitStruct(
  * @brief    Инициализация указателей на области памяти, в которых
  *           содержаться матрицы
  *
- * @param[out] 	*pData_s:              Данные с
- * @param[in]  	*pMatrixPointers_s:    Матричные указатели s
+ * @param[out] 	*pData_s:	Указатель на структуру данных, в которой содержаться
+ * 							параметры, необходимые для работы UKF
+ * @param[in]  	*pMatrixPointers_s: Указатель на структуру данных, содержащую 
+ * 									указатели на области памяти матричных структур
  */
 void __VGCS_FNC_ONCE_MEMORY_LOCATION
 VGSS_Init_MatrixStructs(
