@@ -451,81 +451,6 @@ typedef struct
 	__VGCS_FPT__ state_a[VGCS_LEN_STATE];
 } vgcs_data_init_s;
 
-#define __VGCS_GET_ADDR_MATRIX_STRUCT_R_k(BASEADDR)	\
-	(&BASEADDR->noiseMatrix_s.RMat_s.mat_s)
-#define __VGCS_GET_ADDR_MATRIX_MEMORY_R_k(BASEADDR)	\
-	(BASEADDR->noiseMatrix_s.RMat_s.memForMatrix[0u])
-
-#define __VGCS_GET_ADDR_MATRIX_STRUCT_Q_k(BASEADDR)	\
-	(&BASEADDR->noiseMatrix_s.QMat_s.mat_s)
-#define __VGCS_GET_ADDR_MATRIX_MEMORY_Q_k(BASEADDR)	\
-	(BASEADDR->noiseMatrix_s.QMat_s.memForMatrix[0u])
-
-/*-------------------------------------------------------------------------*//**
- * @brief    Calculate error covariance matrix square root
- */
-#define VGCS_GET_ADDR_MATRIX_STRUCT_P_k(BASEADDR)
-
-
-#define VGCS_GET_ADDR_MATRIX_MEMORY_P_k(BASEADDR)
-
-/*-------------------------------------------------------------------------*//**
- * @brief   Calculate error covariance matrix square root
- */
-#define VGCS_GET_ADDR_MATRIX_STRUCT_P_k_k1_SQRT(BASEADDR)
-
-#define VGCS_GET_ADDR_MATRIX_MEMORY_P_k_k1_SQRT(BASEADDR)
-
-/*-------------------------------------------------------------------------*//**
- * @brief    Calculate the sigma-points
- */
-#define VGCS_GET_ADDR_MATRIX_chi_k1(BASEADDR)
-
-/*-------------------------------------------------------------------------*//**
- * @brief    Propagate each sigma-point through prediction
- */
-#define VGCS_GET_ADDR_MARTIX_chi_k_k1(BASEADDR)
-
-/*-------------------------------------------------------------------------*//**
- * @brief    Calculate mean of predicted state
- */
-#define VGCS_GET_ADDR_MARTIX_x_k_k1(BASEADDR)
-
-/*-------------------------------------------------------------------------*//**
- * @brief    Calculate covariance of predicted state
- */
-#define VGCS_GET_ADDR_MARTIX_P_k_k1(BASEADDR)
-
-/*-------------------------------------------------------------------------*//**
- * @brief    Propagate each sigma-point through observation
- */
-#define VGCS_GET_ADDR_MARTIX_psi_k_k1(BASEADDR)
-
-/*-------------------------------------------------------------------------*//**
- * @brief    Calculate mean of predicted output
- */
-#define VGCS_GET_ADDR_MARTIX_y_k_k1(BASEADDR)
-
-/*-------------------------------------------------------------------------*//**
- * @brief    Calculate covariance of predicted output
- */
-#define VGCS_GET_ADDR_MARTIX_Pyy(BASEADDR)
-
-/*-------------------------------------------------------------------------*//**
- * @brief    Calculate cross-covariance of state and output
- */
-#define VGCS_GET_ADDR_MARTIX_Pxy(BASEADDR)
-
-/*-------------------------------------------------------------------------*//**
- * @brief    Calculate Kalman gain
- */
-#define VGCS_GET_ADDR_MARTIX_K_k(BASEADDR)
-
-/*-------------------------------------------------------------------------*//**
- * @brief    Update state estimate
- */
-#define VGCS_GET_ADDR_MARTIX_x_k(xBASEADDR)
-
 /*#### |End  | <-- Секция - "Определение типов" ##############################*/
 
 
@@ -619,10 +544,6 @@ VGCS_UpdateSpeedByGNSS(
 	vgcs_data_s 	*pData_s,
 	__VGCS_FPT__ 	*pVel)
 {
-//	pData_s->meas_s.velByGNSSWorldFrame_s.new_a[0u] = *pVel++;
-//	pData_s->meas_s.velByGNSSWorldFrame_s.new_a[1u] = *pVel++;
-//	pData_s->meas_s.velByGNSSWorldFrame_s.new_a[2u] = *pVel;
-
 	/* Заполнение вектора измерений */
 	/* @todo после отладки заполнение нулями ячеек массива можно удалить */
 	pData_s->y_posteriori_s.memForMatrix[VGCS_ACC_ERR_X][0u] = (__VGCS_FPT__) 0.0;
