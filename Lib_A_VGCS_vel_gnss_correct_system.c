@@ -917,36 +917,18 @@ static vgcs_fnc_status_e __VGCS_FNC_LOOP_MEMORY_LOCATION
 VGCS_Step3_PropagateEachSigmaPointThroughObservation(
 	vgcs_data_s *pData_s)
 {
-	#if defined (__UKFMO_CHEKING_ENABLE__)
-	ukfmo_fnc_status_e matOperationStatus_e;
-	#endif
-
 	/* Т.к. матрица psi_k|k-1  соответствует матрице chi_k|k-1 с 0-й по 2-ю ячейку, то
-	 * выполним копирование матрицы без преобразования и запишем нули в 3-ю - 5-ю ячейки */
-
-	/* @TODO меньше тактов будет затрачено на эту операцию если копировать
-	 * только те элементы, которые необходимо, а остальные не трогать */
-	#if defined (__UKFMO_CHEKING_ENABLE__)
-	matOperationStatus_e =
-	#endif
-		UKFMO_CopyMatrix(
-			__VGCS_CheckMatrixStructValidation(&pData_s->psi_apriori_s.mat_s),
-			__VGCS_CheckMatrixStructValidation(&pData_s->chiSigmaMat_s.mat_s));
-
-	size_t col;
-	for (col = 0u; col < pData_s->psi_apriori_s.mat_s.numCols; col++)
+	 * выполним копирование матрицы без преобразования, 3-5 строки должны быть нулевыми */
+	size_t row, col;
+	for (row = 0u; row < 3u; row++)
 	{
-		pData_s->psi_apriori_s.memForMatrix[3u][col] = (__VGCS_FPT__) 0.0;
-		pData_s->psi_apriori_s.memForMatrix[4u][col] = (__VGCS_FPT__) 0.0;
-		pData_s->psi_apriori_s.memForMatrix[5u][col] = (__VGCS_FPT__) 0.0;
+		for(col = 0u; col < pData_s->psi_apriori_s.mat_s.numCols; col++)
+		{
+			pData_s->psi_apriori_s.memForMatrix[row][col] =
+				pData_s->chiSigmaMat_s.memForMatrix[row][col];
+		}
 	}
-
-
-	#if defined (__UKFMO_CHEKING_ENABLE__)
-	return (matOperationStatus_e);
-	#else
 	return (UKFMO_OK);
-	#endif
 }
 
 /*-------------------------------------------------------------------------*//**
